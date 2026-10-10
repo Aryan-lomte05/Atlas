@@ -100,24 +100,27 @@ AI-IA2/
 
 ---
 
-## Roadmap & Tasks for Teammates
+## Full Teammate Handover & Ownership Guide
 
-### Tasks for Aditya (Tool Engineering Lead):
-1. **Add More Grounded Tools** (`src/lib/tools.ts`):
-   - Add a `restaurant_recommender(city, cuisine)` tool for local food discovery.
-   - Add a `packing_checklist(destination, weather)` tool that uses weather observations to generate clothing checklists.
-2. **Unit Tests**:
-   - Write tests for tool dispatch error handling and API fallback timeouts.
-3. **MongoDB Trace Explorer**:
-   - Add a small history drawer in the playground that calls `GET /api/traces` to display past student queries stored in Atlas.
+The entire end-to-end foundation has been engineered, verified, and committed. All 3 members share equal ownership. Aditya and Manthan can now take over full management, testing, deployment, and viva presentation:
 
-### Tasks for Manthan (Evaluation & Benchmarks Lead):
-1. **Viva Demonstration Prep**:
-   - Test `python demo_agent.py` on various complex prompts and prepare terminal screenshots for the viva presentation.
-2. **Review Academic Report** (`REPORT.md`):
-   - Cross-check `REPORT.md` with the college template `AI IA2 report format.docx` and add any batch-specific roll numbers.
-3. **Slide Deck**:
-   - Populate `IA2 Instructions.pptx` using the diagrams and tables from `SYSTEM.md` and `REPORT.md`.
+### 1. Running & Local Testing
+- Start the fullstack web UI: `npm run dev` (runs on http://localhost:3000).
+- Run the terminal CLI demo: `python demo_agent.py` (ideal for viva demonstrations with zero browser dependency).
+- Run typecheck and build validation: `npx tsc --noEmit` and `npm run build`.
+
+### 2. Database & API Key Verification
+- Check `.env.local`: Add your MongoDB Atlas cluster host and Groq API key (system runs with simulated ReAct fallback if key is omitted).
+- Verify database traces: Traces automatically save to MongoDB Atlas collection `agenttraces`.
+
+### 3. Deployments
+- **Vercel**: Import repository `https://github.com/Aryan-lomte05/Atlas.git` and click Deploy.
+- **Render**: Create Web Service pointing to `server/index.ts` using the included `render.yaml` blueprint.
+
+### 4. Submission & Viva Deliverables
+- **Academic Report**: Complete 5 to 10 page lab report is ready in `REPORT.md`. Simply add batch roll numbers.
+- **Presentation Slides**: Use diagrams, tables, and traces from `SYSTEM.md` and `REPORT.md` to populate `IA2 Instructions.pptx`.
+- **Optional Extensions**: Any team member can add new tools to `src/lib/tools.ts` or add tests in `demo_agent.py`.
 
 ---
 

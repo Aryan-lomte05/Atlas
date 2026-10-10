@@ -36,13 +36,15 @@ Atlas is an autonomous, goal-driven travel planning agent built using the **ReAc
 
 ---
 
-## Lab Batch Project Team
+## Lab Batch Project Team (Equal Shared Contribution)
 
-| Team Member | Role | Key Contributions |
+| Team Member | Role | Shared Contributions |
 | :--- | :--- | :--- |
-| **Aryan Lomte** | Lead System Architect | ReAct engine orchestration, Next.js UI, SSE trace streaming, cloud deployment. |
-| **Aditya** | Tool Engineering Lead | Open-Meteo API integration, flight/hotel search modules, mathjs budget evaluator. |
-| **Manthan** | Evaluation & Benchmarks | Classical agent implementation, quantitative evaluation matrix, laboratory report. |
+| **Aryan Lomte** | Fullstack AI Co-Developer | Co-developed ReAct engine, Next.js UI, SSE trace streaming, and cloud deployment. |
+| **Aditya** | Fullstack AI Co-Developer | Co-developed tool integrations (Open-Meteo, flight/hotel APIs, mathjs), error handling, and tests. |
+| **Manthan** | Fullstack AI Co-Developer | Co-developed classical agent for Part C, quantitative benchmark matrix, and laboratory report. |
+
+*Team Policy: Equal end-to-end contribution across architecture, agent implementation, tools, and testing.*
 
 ---
 

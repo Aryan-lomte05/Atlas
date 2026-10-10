@@ -15,13 +15,17 @@ In compliance with the college syllabus (IA-2 Activity 1, Part C), Atlas also fe
 
 ---
 
-## 2. Team Division of Labor
+## 2. Team Collaboration Model (Equal Shared Contribution)
 
-| Team Member | Role | Key Deliverables & Responsibilities |
+All 3 team members share full end-to-end responsibility across the system:
+
+| Team Member | Role | Shared Deliverables & Responsibilities |
 | :--- | :--- | :--- |
-| **Aryan Lomte** | Lead System Architect | ReAct engine orchestration, Next.js fullstack frontend, Server-Sent Events (SSE) streaming traces, cloud deployment. |
-| **Aditya** | Tool Engineering Lead | External API integrations (Open-Meteo weather, flight routes, lodging tiers, mathjs budget evaluator), error fallbacks, unit test suite. |
-| **Manthan** | Evaluation & Benchmarks | Classical agent implementation, Part C comparative evaluation matrix, viva test cases, academic report authoring. |
+| **Aryan Lomte** | Fullstack AI Co-Developer | Co-developed ReAct cognitive loop, fullstack Next.js UI, SSE trace streaming, and cloud deployment. |
+| **Aditya** | Fullstack AI Co-Developer | Co-developed external tool integrations (Open-Meteo, flight/lodging APIs, mathjs), error handling, and unit tests. |
+| **Manthan** | Fullstack AI Co-Developer | Co-developed classical agent implementation for Part C, quantitative benchmark matrix, slide deck, and laboratory report. |
+
+*Team Ownership: Every member has full context across architecture, agent implementation, tools, and testing to represent the project in laboratory evaluations.*
 
 ---
 

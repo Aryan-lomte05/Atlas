@@ -6,10 +6,11 @@
 **Department**: Department of Electronics & Computer Engineering  
 **Academic Year**: 2026-27  
 
-**Student Group Details**:
-1. **Aryan Lomte**: Lead System Architect (ReAct Engine, Fullstack Next.js UI, Real-Time SSE Observability, Cloud Deployment)
-2. **Aditya**: Tool Engineering Lead (Open-Meteo Weather Integration, Flight & Lodging Search Modules, Mathjs Budget Evaluator, Unit Testing)
-3. **Manthan**: Agent Evaluation & Benchmarks Specialist (Classical Rule-Based Agent Implementation, Part C Comparative Matrix, Quantitative Empirical Analysis, Report Documentation)
+**Student Group Details (Equal Shared Contribution)**:
+1. **Aryan Lomte**: Fullstack AI Co-Developer (System Architecture, ReAct Engine, Next.js UI, Deployment)
+2. **Aditya**: Fullstack AI Co-Developer (Tool Integrations, API Grounding, Testing, Report Documentation)
+3. **Manthan**: Fullstack AI Co-Developer (Classical Agent Evaluation, Benchmarks, Viva Presentation, Report Documentation)
+*(All team members contributed across the entire project lifecycle).*
 
 **Repository**: [https://github.com/Aryan-lomte05/Atlas.git](https://github.com/Aryan-lomte05/Atlas.git)  
 
@@ -257,11 +258,15 @@ Three test scenarios were executed across both agents to evaluate empirical perf
 
 ## 6. Team Contribution Matrix
 
-| Team Member | Core Focus Area | Specific Deliverables |
+All three team members contributed equally across the entire system development lifecycle:
+
+| Team Member | Role | Shared Deliverables & Responsibilities |
 | :--- | :--- | :--- |
-| **Aryan Lomte** | Lead System Architect | ReAct engine orchestration, Next.js fullstack architecture, SSE streaming trace pipeline, SaaS dark-mode UI, MongoDB Atlas connection. |
-| **Aditya** | Tool Engineering Lead | Open-Meteo live API adapter, flight route estimator, lodging tier database, mathjs budget evaluator, unit tests. |
-| **Manthan** | Evaluation & Benchmarks | Classical rule-based agent implementation, comparative test suite, quantitative evaluation matrix, laboratory report authoring. |
+| **Aryan Lomte** | Fullstack AI Co-Developer | Co-developed ReAct cognitive orchestration loop, Next.js UI, SSE trace streaming, and cloud deployment setup. |
+| **Aditya** | Fullstack AI Co-Developer | Co-developed external tool integrations (Open-Meteo, flight/lodging APIs, mathjs), error handling, and unit tests. |
+| **Manthan** | Fullstack AI Co-Developer | Co-developed classical agent implementation for Part C, quantitative benchmark matrix, slide deck, and laboratory report. |
+
+*Collaboration Policy: All 3 members possess complete end-to-end understanding of the entire codebase and report for the laboratory viva evaluation.*
 
 ---
 

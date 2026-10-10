@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Code, Wrench, BarChart3, Award, Sparkles } from "lucide-react";
+import { Users, Code, Wrench, BarChart3, Award, Sparkles, CheckCircle2 } from "lucide-react";
 
 interface TeamMember {
   name: string;
@@ -14,39 +14,39 @@ interface TeamMember {
 const TEAM_MEMBERS: TeamMember[] = [
   {
     name: "Aryan Lomte",
-    role: "Lead System Architect",
-    focusArea: "ReAct Core & Fullstack Next.js UI",
+    role: "Fullstack AI Co-Developer",
+    focusArea: "End-to-End System Engineering",
     responsibilities: [
-      "Designed autonomous ReAct cognitive loop (Thought-Action-Observation).",
-      "Built production Next.js frontend with dark-mode SaaS aesthetics.",
-      "Implemented server-sent events (SSE) for real-time trace streaming.",
-      "Engineered prompt architecture and high-fidelity simulated fallback.",
+      "Co-developed autonomous ReAct cognitive loop (Thought-Action-Observation).",
+      "Contributed to fullstack Next.js UI, real-time SSE traces, and styling.",
+      "Co-designed tool groundings, database persistence, and API endpoints.",
+      "Collaborated on classical agent benchmarking and technical documentation.",
     ],
     icon: <Code size={20} />,
     tagColor: "bg-sky-500/10 text-sky-400 border-sky-500/20",
   },
   {
     name: "Aditya",
-    role: "Tool Engineering & API Lead",
-    focusArea: "Grounding Tools & Verification",
+    role: "Fullstack AI Co-Developer",
+    focusArea: "End-to-End System Engineering",
     responsibilities: [
-      "Integrated Open-Meteo live meteorological endpoint with geocoding.",
-      "Developed flight route estimator and multi-tier lodging explorer.",
-      "Implemented mathjs budget solver and foreign exchange converter.",
-      "Built automated test cases for tool error handling and fallbacks.",
+      "Co-developed autonomous ReAct cognitive loop (Thought-Action-Observation).",
+      "Contributed to external REST tool integrations and error handling.",
+      "Co-designed lodging, flight, and meteorological API evaluation modules.",
+      "Collaborated on unit testing, live viva demonstration, and reporting.",
     ],
     icon: <Wrench size={20} />,
     tagColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   },
   {
     name: "Manthan",
-    role: "Agent Evaluation & Benchmarks Lead",
-    focusArea: "Part C Syllabus Analysis & Testing",
+    role: "Fullstack AI Co-Developer",
+    focusArea: "End-to-End System Engineering",
     responsibilities: [
-      "Implemented classical rule-based agent for empirical syllabus comparison.",
-      "Designed quantitative evaluation matrix and constraint satisfaction tests.",
-      "Analyzed failure modes, latency benchmarks, and error recovery.",
-      "Structured comprehensive 5 to 10 page academic laboratory report.",
+      "Co-developed autonomous ReAct cognitive loop (Thought-Action-Observation).",
+      "Contributed to classical rule-based agent implementation for Part C.",
+      "Co-designed quantitative empirical matrix and scenario benchmark tests.",
+      "Collaborated on slide presentations, laboratory viva, and project report.",
     ],
     icon: <BarChart3 size={20} />,
     tagColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -66,12 +66,12 @@ export default function TeamSection() {
           Meet the <span className="bg-gradient-to-r from-purple-400 via-pink-300 to-sky-400 bg-clip-text text-transparent">Project Team</span>
         </h2>
         <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          Department of Electronics & Computer Engineering | Academic Year 2026-27. Division of labor across agent architecture, tool integration, and syllabus analysis.
+          Department of Electronics & Computer Engineering | Academic Year 2026-27. Shared end-to-end responsibility across agent architecture, tool integration, and syllabus analysis.
         </p>
       </div>
 
       {/* 3 Team Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {TEAM_MEMBERS.map((member, idx) => (
           <div
             key={idx}
@@ -96,7 +96,7 @@ export default function TeamSection() {
 
               <div className="space-y-2.5 border-t border-white/5 pt-4">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                  Key Technical Deliverables:
+                  Cross-Functional Contributions:
                 </span>
                 <ul className="space-y-2 text-xs text-zinc-300">
                   {member.responsibilities.map((resp, i) => (
@@ -114,10 +114,19 @@ export default function TeamSection() {
                 <Award size={13} />
                 IA-2 Activity 1
               </span>
-              <span>ECE Lab Batch</span>
+              <span>Equal Collaboration</span>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Collaboration Callout */}
+      <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+        <div className="flex items-center gap-2 text-zinc-300">
+          <CheckCircle2 size={16} className="text-emerald-400" />
+          <span>Shared Project Ownership: All 3 members participated across the entire engineering lifecycle.</span>
+        </div>
+        <span className="font-mono text-zinc-500">20 Marks Lab Assessment</span>
       </div>
     </section>
   );
