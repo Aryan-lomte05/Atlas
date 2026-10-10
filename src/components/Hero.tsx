@@ -6,7 +6,7 @@ import GithubIcon from "./GithubIcon";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative min-h-[90vh] w-full flex items-center justify-center pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background Canvas */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <HeroCanvas />
@@ -14,7 +14,7 @@ export default function Hero() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center text-center">
+      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center">
         {/* College Project Pill Badge */}
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-sky-500/10 border border-sky-500/20 text-sky-300 backdrop-blur-md shadow-lg shadow-sky-500/5 mb-8 animate-fade-in">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
