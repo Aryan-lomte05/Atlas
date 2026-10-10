@@ -823,3 +823,18 @@ body {
   .cta-card-inner { padding: 48px 24px; }
   .footer-bar { padding: 32px 24px; }
 }
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
