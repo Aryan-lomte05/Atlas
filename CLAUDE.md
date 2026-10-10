@@ -79,6 +79,7 @@ AI-IA2/
 │   │   ├── FaqSection.tsx          # Accordion FAQ covering syllabus and technical questions
 │   │   ├── CtaSection.tsx          # Pre-footer newsletter and launch banner
 │   │   ├── Footer.tsx              # Attribution, GitHub links, and back-to-top button
+│   │   ├── ParticleCanvas.tsx      # Reusable pointer-reactive particle field canvas
 │   │   ├── SmoothScroll.tsx        # Lenis smooth inertial scrolling wrapper
 │   │   └── GithubIcon.tsx          # Reusable SVG icon component
 │   └── lib/
@@ -86,6 +87,7 @@ AI-IA2/
 │       ├── classicalAgent.ts       # Part C syllabus classical rule-based agent
 │       ├── tools.ts                # 6 tool implementations (Open-Meteo, Wikipedia, mathjs, etc.)
 │       ├── db.ts                   # MongoDB Atlas connection helper with connection caching
+│       ├── utils.ts                # Shared class-name merge and formatting helpers
 │       └── models/
 │           ├── AgentTrace.ts       # Mongoose schema for execution logs
 │           └── SavedItinerary.ts   # Mongoose schema for finalized travel plans
