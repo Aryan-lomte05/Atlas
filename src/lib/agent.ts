@@ -38,7 +38,7 @@ export interface AgentRunResult {
   simulated: boolean;
 }
 
-const MAX_ITERATIONS = 14;
+const MAX_ITERATIONS = 11;
 const MAX_NUDGES = 4;
 const MAX_MODEL_RETRIES = 3;
 
@@ -365,7 +365,7 @@ export async function runAgent(
             { role: "user", content: trimScratchpad(scratchpad) },
           ],
           temperature: 0.25,
-          max_tokens: 1400,
+          max_tokens: 1000,
           stop: ["\nObservation:", "Observation:"],
         });
         reply = completion.choices[0]?.message?.content ?? "";

@@ -22,7 +22,7 @@ export interface ToolResult {
 }
 
 const UA = "Atlas-Travel-Agent/2.0 (college project; contact via GitHub)";
-const TIMEOUT_MS = 9000;
+const TIMEOUT_MS = 7000;
 
 /** fetch with a hard timeout, so one hanging endpoint cannot stall a run. */
 async function getJson<T = unknown>(url: string): Promise<T> {
@@ -497,7 +497,7 @@ async function overpass(query: string): Promise<OsmElement[]> {
 
   for (const host of OVERPASS_MIRRORS) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 22000);
+    const timer = setTimeout(() => ctrl.abort(), 14000);
     try {
       const res = await fetch(host, {
         method: "POST",
@@ -704,11 +704,11 @@ async function wikivoyageListings(place: string): Promise<Listing[]> {
     const subs = await getJson<{ query?: { prefixsearch?: { title: string }[] } }>(
       `https://en.wikivoyage.org/w/api.php?action=query&list=prefixsearch&pssearch=${encodeURIComponent(
         `${title}/`,
-      )}&pslimit=5&format=json&origin=*`,
+      )}&pslimit=2&format=json&origin=*`,
     );
     for (const s of subs.query?.prefixsearch ?? []) {
       rows = rows.concat(parseListings(await wikivoyagePage(s.title)));
-      if (countOf("see") >= 10 && countOf("eat") >= 10) break;
+      if (countOf("see") >= 8 || countOf("eat") >= 8) break;
     }
   }
 
