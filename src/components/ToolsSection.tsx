@@ -71,7 +71,7 @@ export default function ToolsSection() {
                 </div>
 
                 <p className="mt-3 max-w-md text-[13px] leading-relaxed text-ink-soft">
-                  {t.purpose}
+                  {t.summary}
                 </p>
 
                 <p className="mt-3 font-mono text-[11.5px] text-ink-mute">

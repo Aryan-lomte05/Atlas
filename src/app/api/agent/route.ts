@@ -8,7 +8,20 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const { goal, mode } = await req.json();
+    const { goal, mode, history } = await req.json();
+
+    // Prior turns, flattened into a short context block. Trimmed because a
+    // long conversation would otherwise crowd out the live scratchpad.
+    const priorContext = Array.isArray(history)
+      ? history
+          .slice(-4)
+          .map((h: { goal?: string; answer?: string }) => {
+            const answer = (h.answer ?? "").slice(0, 1200);
+            return `Traveller asked: ${h.goal ?? ""}\nYou answered: ${answer}`;
+          })
+          .join("\n\n")
+          .slice(0, 5000)
+      : undefined;
 
     if (!goal || typeof goal !== "string") {
       return new Response(JSON.stringify({ error: "Goal is required" }), {
@@ -55,10 +68,14 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const result = await runAgent(goal, (step: AgentStep) => {
-            const data = `data: ${JSON.stringify(step)}\n\n`;
-            controller.enqueue(encoder.encode(data));
-          });
+          const result = await runAgent(
+            goal,
+            (step: AgentStep) => {
+              const data = `data: ${JSON.stringify(step)}\n\n`;
+              controller.enqueue(encoder.encode(data));
+            },
+            priorContext || undefined,
+          );
 
           // Send final completion packet
           const finalData = `data: ${JSON.stringify({ type: "complete", result })}\n\n`;

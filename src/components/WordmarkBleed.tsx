@@ -18,15 +18,15 @@ export default function WordmarkBleed() {
     >
       <style>{`
         @keyframes atlas-pan {
-          0%   { background-position: 0 0, 50% 42%; }
-          50%  { background-position: 7px 5px, 50% 58%; }
-          100% { background-position: 0 0, 50% 42%; }
+          0%   { background-position: 0 0, 42% 50%; }
+          50%  { background-position: 7px 5px, 58% 50%; }
+          100% { background-position: 0 0, 42% 50%; }
         }
         .atlas-wordmark {
           background-image:
             radial-gradient(circle, rgba(4,16,20,0.78) 1.7px, transparent 2px),
             url("/img/palms-beach.jpg");
-          background-size: 7px 7px, 118% auto;
+          background-size: 7px 7px, cover;
           background-repeat: repeat, no-repeat;
           -webkit-background-clip: text;
           background-clip: text;
@@ -40,7 +40,7 @@ export default function WordmarkBleed() {
 
       <div className="mx-auto w-full max-w-[1200px] px-4">
         <p
-          className="atlas-wordmark -mb-[0.19em] whitespace-nowrap text-center font-sans font-bold leading-[0.78] tracking-[-0.05em]"
+          className="atlas-wordmark -mb-[0.11em] whitespace-nowrap text-center font-sans font-bold leading-[0.78] tracking-[-0.05em]"
           style={{ fontSize: "clamp(3.25rem, 18.5vw, 15rem)" }}
         >
           ATLAS
