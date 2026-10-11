@@ -1,86 +1,113 @@
-"use client";
-
-import HeroCanvas from "./HeroCanvas";
-import { ArrowRight, Sparkles, ShieldCheck, Zap, Bot, Terminal } from "lucide-react";
-import GithubIcon from "./GithubIcon";
+import Image from "next/image";
+import { ArrowRight, ArrowUp, Compass } from "lucide-react";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[90vh] w-full flex items-center justify-center pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background Canvas */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <HeroCanvas />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#060a12]/70 to-[#0c0c0c]" />
-      </div>
+    <section id="top" className="relative w-full overflow-hidden">
+      {/* Tropical dusk haze */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[640px]"
+        style={{
+          background:
+            "radial-gradient(62% 100% at 50% 0%, rgba(255,130,87,0.20) 0%, rgba(255,111,156,0.10) 38%, transparent 72%), radial-gradient(45% 75% at 10% 10%, rgba(47,212,192,0.14) 0%, transparent 70%), radial-gradient(45% 75% at 92% 6%, rgba(247,196,92,0.14) 0%, transparent 70%)",
+        }}
+      />
 
-      {/* Main Content */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center">
-        {/* College Project Pill Badge */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-sky-500/10 border border-sky-500/20 text-sky-300 backdrop-blur-md shadow-lg shadow-sky-500/5 mb-8 animate-fade-in">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>IA-2 Activity 1: Modern Agentic AI System</span>
-          <span className="text-zinc-500">|</span>
-          <span className="text-zinc-300">ECE Department 2026-27</span>
+      <div className="frame relative">
+        <div className="px-6 pt-32 pb-14 text-center sm:px-10 sm:pt-40">
+          {/* Announcement */}
+          <div className="animate-rise mx-auto mb-10 inline-flex items-stretch overflow-hidden rounded-full border border-line bg-surface/80 backdrop-blur-md">
+            <span className="micro flex items-center gap-1.5 bg-cobalt px-3 py-2 font-bold text-[#231007]">
+              <Compass size={12} />
+              IA-2
+            </span>
+            <span className="flex items-center px-3.5 py-2 text-[12.5px] text-ink-soft">
+              Activity 1: an autonomous agent that plans the whole trip.
+            </span>
+          </div>
+
+          {/* Display headline */}
+          <h1 className="animate-rise mx-auto max-w-4xl font-serif text-[clamp(2.7rem,6.6vw,5rem)] font-light leading-[1.02] tracking-[-0.022em] text-ink">
+            Somewhere warm,
+            <br />
+            planned by an agent that{" "}
+            <em className="italic font-normal text-cobalt-soft">thinks</em>.
+          </h1>
+
+          <p className="animate-rise mx-auto mt-7 max-w-xl text-[15.5px] leading-relaxed text-ink-soft">
+            Tell Atlas where you want to go. It checks the sky, finds the
+            route, prices the nights, and rearranges the days around the rain,
+            one reasoned step at a time.
+          </p>
+
+          {/* Actions */}
+          <div className="animate-rise mt-9 flex flex-wrap items-center justify-center gap-2.5">
+            <a
+              href="#playground"
+              className="flex items-center gap-2 rounded-full bg-cobalt px-5 py-3 text-[#231007] transition-colors hover:bg-cobalt-deep"
+            >
+              <span className="micro font-bold">Plan a trip</span>
+              <ArrowRight size={13} />
+            </a>
+            <a
+              href="#how"
+              className="flex items-center gap-2 rounded-full border border-line bg-surface/70 px-5 py-3 text-ink-soft backdrop-blur-md transition-colors hover:border-line-strong hover:text-ink"
+            >
+              <span className="micro font-bold">See how it works</span>
+            </a>
+          </div>
         </div>
 
-        {/* Hero Title */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-          Autonomous Travel Planning{" "}
-          <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
-            Powered by ReAct Agentic Intelligence
-          </span>
-        </h1>
+        {/* Shoreline plate with the floating goal card */}
+        <div className="relative mx-6 h-[460px] overflow-hidden border-x border-t border-line sm:mx-10 sm:h-[560px]">
+          <Image
+            src="/img/hero-shore.jpg"
+            alt="Warm surf washing over a pale tropical beach at sunrise"
+            fill
+            priority
+            sizes="(max-width: 1200px) 100vw, 1120px"
+            className="object-cover"
+          />
 
-        {/* Hero Subtitle */}
-        <p className="max-w-3xl text-base sm:text-xl text-zinc-300 font-normal leading-relaxed mb-10">
-          Atlas replaces static chatbots with an autonomous goal-driven agent that plans, verifies live weather, searches flights and hotels, evaluates budgets, and executes verifiable tool-reasoning cycles.
-        </p>
+          {/* Halftone veil ties the photography to the editorial grain */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.16]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(3,14,18,0.8) 0.9px, transparent 1.2px)",
+              backgroundSize: "3px 3px",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(7,20,26,0.5) 0%, rgba(7,20,26,0.0) 32%, rgba(7,20,26,0.1) 55%, rgba(7,20,26,0.82) 100%)",
+            }}
+          />
 
-        {/* CTAs */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
-          <a
-            href="#playground"
-            className="flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-black font-bold text-sm shadow-xl shadow-sky-500/20 hover:scale-105 transition-all duration-200"
-          >
-            <Bot size={17} />
-            Try Live Playground
-            <ArrowRight size={16} />
-          </a>
-          <a
-            href="#architecture"
-            className="flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm backdrop-blur-md transition-all hover:border-white/20"
-          >
-            <Terminal size={16} className="text-sky-400" />
-            View Architecture Flow
-          </a>
-          <a
-            href="https://github.com/Aryan-lomte05/Atlas.git"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-medium text-sm transition-all"
-          >
-            <GithubIcon size={16} />
-            GitHub
-          </a>
-        </div>
-
-        {/* Quantitative Metric Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl p-4 sm:p-6 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl shadow-2xl">
-          <div className="flex flex-col items-center p-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">6 Tools</span>
-            <span className="text-xs text-zinc-400 font-medium">Autonomous Grounding</span>
-          </div>
-          <div className="flex flex-col items-center p-2 border-l border-white/5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-sky-400">100%</span>
-            <span className="text-xs text-zinc-400 font-medium">ReAct Protocol Compliance</span>
-          </div>
-          <div className="flex flex-col items-center p-2 border-l border-white/5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-400">&lt; 1.4s</span>
-            <span className="text-xs text-zinc-400 font-medium">Median Step Latency</span>
-          </div>
-          <div className="flex flex-col items-center p-2 border-l border-white/5">
-            <span className="text-2xl sm:text-3xl font-extrabold text-purple-400">3 Students</span>
-            <span className="text-xs text-zinc-400 font-medium">Lab Team Collaboration</span>
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <div className="w-full max-w-xl overflow-hidden rounded-[6px] border border-line-strong bg-surface/92 shadow-2xl backdrop-blur-md">
+              <div className="px-5 pt-5 pb-4 text-[15px] leading-relaxed text-ink">
+                Five days somewhere with a beach and good food, early April,
+                two of us, ninety thousand rupees.
+              </div>
+              <div className="flex items-center justify-between border-t border-line px-4 py-3">
+                <span className="micro flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-ink-soft">
+                  <span className="text-cobalt">{">_"}</span>
+                  Plan a trip
+                </span>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-cobalt text-[#231007]">
+                  <ArrowUp size={14} />
+                </span>
+              </div>
+              <div className="micro border-t border-line px-4 py-2.5 text-ink-mute">
+                Give the agent a goal. It decides the steps.
+              </div>
+            </div>
           </div>
         </div>
       </div>

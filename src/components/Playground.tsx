@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Plane,
-  Building,
-  CloudSun,
-  Calculator,
-  Compass,
-  ShieldCheck,
-  Play,
-  RotateCcw,
-  Download,
-  Copy,
-  Check,
-  Sparkles,
-  Layers,
-  Cpu,
-  Clock,
-  ArrowRight,
-  AlertTriangle
+  ArrowUp,
+  Brain,
+  CircleDot,
+  Eye,
+  Loader2,
+  Square,
+  Terminal,
+  Wrench,
 } from "lucide-react";
+import { Section, SectionHead } from "./Section";
+import { cn } from "@/lib/utils";
+
+/* ---------------- types mirroring src/lib ---------------- */
 
 interface AgentStep {
   type: "thought" | "action" | "observation" | "answer";
@@ -29,7 +24,7 @@ interface AgentStep {
   timestamp: number;
 }
 
-interface AgentResult {
+interface AgentRunResult {
   goal: string;
   agentType: string;
   steps: AgentStep[];
@@ -47,7 +42,7 @@ interface ClassicalStep {
   timestamp: number;
 }
 
-interface ClassicalResult {
+interface ClassicalRunResult {
   goal: string;
   agentType: string;
   steps: ClassicalStep[];
@@ -58,488 +53,505 @@ interface ClassicalResult {
   limitationsEncountered: string[];
 }
 
-const PRESET_GOALS = [
-  {
-    title: "Tokyo 5-Day Spring Trip",
-    prompt: "Plan a 5-day trip to Tokyo in spring with a mid-range budget of $1600. Include flights, lodging in Shinjuku, live weather forecast, top sights, and an itemized cost calculation.",
-  },
-  {
-    title: "Paris 3-Day Art & Dining",
-    prompt: "I want a 3-day cultural weekend in Paris. Check current weather, flight routes, boutique hotels near Latin Quarter, and museum highlights.",
-  },
-  {
-    title: "Goa Beach & Heritage Tour",
-    prompt: "Plan a 4-day trip to Goa for 3 friends with nightlife, heritage churches in Old Goa, beach stays, and convert total budget to INR.",
-  },
-  {
-    title: "Kyoto Solo Cultural Trail",
-    prompt: "Plan a 4-day solo cultural tour to Kyoto. Include Arashiyama bamboo grove, Fushimi Inari, budget ryokan or hostel stays, and local etiquette guidelines.",
-  },
-  {
-    title: "Bali Wellness & Nature",
-    prompt: "Formulate a 6-day wellness trip to Bali with rice terraces in Ubud, beach sunset in Seminyak, current weather check, and estimated lodging expenses.",
-  },
+type Mode = "react" | "classical" | "both";
+
+const PRESETS = [
+  "Plan 5 days in Kyoto in early April for two people on a 90000 INR budget. Work around the weather.",
+  "A week in Reykjavik in November. I have not set a budget. What should I know before booking?",
+  "Four days in Goa for three friends, 18000 INR total, cheapest workable plan.",
+  "Three days in Singapore with one rainy day expected. Keep it under 45000 INR.",
 ];
 
-const STEP_THEMES: Record<string, { label: string; bg: string; border: string; text: string; icon: string }> = {
-  thought: {
-    label: "THOUGHT",
-    bg: "rgba(168, 85, 247, 0.08)",
-    border: "rgba(168, 85, 247, 0.3)",
-    text: "#c084fc",
-    icon: "brain",
-  },
-  action: {
-    label: "ACTION",
-    bg: "rgba(56, 189, 248, 0.08)",
-    border: "rgba(56, 189, 248, 0.3)",
-    text: "#38bdf8",
-    icon: "tool",
-  },
-  observation: {
-    label: "OBSERVATION",
-    bg: "rgba(251, 191, 36, 0.08)",
-    border: "rgba(251, 191, 36, 0.3)",
-    text: "#fbbf24",
-    icon: "eye",
-  },
-  answer: {
-    label: "FINAL ITINERARY",
-    bg: "rgba(52, 211, 153, 0.08)",
-    border: "rgba(52, 211, 153, 0.3)",
-    text: "#34d399",
-    icon: "check",
-  },
+const STEP_META: Record<
+  AgentStep["type"],
+  { label: string; tone: string; Icon: typeof Brain }
+> = {
+  thought: { label: "Thought", tone: "text-plum", Icon: Brain },
+  action: { label: "Action", tone: "text-cobalt", Icon: Wrench },
+  observation: { label: "Observation", tone: "text-moss", Icon: Eye },
+  answer: { label: "Final answer", tone: "text-ink", Icon: CircleDot },
 };
 
-const TOOL_PILLS: Record<string, { name: string; color: string; icon: React.ReactNode }> = {
-  weather_forecast: { name: "Weather API", color: "#38bdf8", icon: <CloudSun size={13} /> },
-  flight_finder: { name: "Flight Route Engine", color: "#818cf8", icon: <Plane size={13} /> },
-  hotel_search: { name: "Lodging Explorer", color: "#f472b6", icon: <Building size={13} /> },
-  currency_and_budget_calculator: { name: "Math & FX Calculator", color: "#34d399", icon: <Calculator size={13} /> },
-  attractions_explorer: { name: "Attractions Explorer", color: "#fbbf24", icon: <Compass size={13} /> },
-  travel_advisory_and_visa: { name: "Visa & Advisory Guide", color: "#fb7185", icon: <ShieldCheck size={13} /> },
-};
+/* ---------------- component ---------------- */
 
 export default function Playground() {
-  const [goal, setGoal] = useState(PRESET_GOALS[0].prompt);
-  const [activeMode, setActiveMode] = useState<"modern" | "classical" | "side_by_side">("modern");
-  const [isRunning, setIsRunning] = useState(false);
-  const [modernSteps, setModernSteps] = useState<AgentStep[]>([]);
-  const [modernResult, setModernResult] = useState<AgentResult | null>(null);
-  const [classicalResult, setClassicalResult] = useState<ClassicalResult | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
+  const [goal, setGoal] = useState(PRESETS[0]);
+  const [mode, setMode] = useState<Mode>("react");
+  const [running, setRunning] = useState(false);
+
+  const [steps, setSteps] = useState<AgentStep[]>([]);
+  const [result, setResult] = useState<AgentRunResult | null>(null);
+  const [classical, setClassical] = useState<ClassicalRunResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const logRef = useRef<HTMLDivElement>(null);
+  const startedAt = useRef(0);
 
-  const handleRun = useCallback(async () => {
-    if (!goal.trim() || isRunning) return;
+  /* live timer */
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(
+      () => setElapsed(Date.now() - startedAt.current),
+      100,
+    );
+    return () => clearInterval(id);
+  }, [running]);
 
-    setIsRunning(true);
-    setModernSteps([]);
-    setModernResult(null);
-    setClassicalResult(null);
-    const start = Date.now();
-    setStartTime(start);
+  /* keep the trace pinned to the newest step */
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [steps, classical]);
 
-    timerRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - start) / 100));
-    }, 100);
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-    abortControllerRef.current = new AbortController();
+  function reset() {
+    setSteps([]);
+    setResult(null);
+    setClassical(null);
+    setError(null);
+    setElapsed(0);
+  }
+
+  async function runClassical(signal: AbortSignal) {
+    const res = await fetch(`${apiBase}/api/agent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal, mode: "classical" }),
+      signal,
+    });
+    if (!res.ok) throw new Error(`Classical agent returned ${res.status}`);
+    const json = await res.json();
+    setClassical(json.result as ClassicalRunResult);
+  }
+
+  async function runReact(signal: AbortSignal) {
+    const res = await fetch(`${apiBase}/api/agent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal, mode: "react" }),
+      signal,
+    });
+    if (!res.ok || !res.body) {
+      throw new Error(`Agent route returned ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE frames are separated by a blank line.
+      const frames = buffer.split("\n\n");
+      buffer = frames.pop() ?? "";
+
+      for (const frame of frames) {
+        const line = frame.split("\n").find((l) => l.startsWith("data: "));
+        if (!line) continue;
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(line.slice(6));
+        } catch {
+          continue;
+        }
+        const p = parsed as Record<string, unknown>;
+
+        if (p.type === "complete") {
+          setResult(p.result as AgentRunResult);
+        } else if (p.type === "error") {
+          setError(String(p.message ?? "Agent error"));
+        } else if (typeof p.type === "string") {
+          setSteps((prev) => [...prev, p as unknown as AgentStep]);
+        }
+      }
+    }
+  }
+
+  async function run() {
+    if (!goal.trim() || running) return;
+    reset();
+    setRunning(true);
+    startedAt.current = Date.now();
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-      if (activeMode === "modern" || activeMode === "side_by_side") {
-        const res = await fetch(`${apiBase}/api/agent`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ goal, mode: "modern" }),
-          signal: abortControllerRef.current.signal,
-        });
-
-        if (!res.body) throw new Error("No response body received");
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const jsonStr = line.slice(6).trim();
-            if (!jsonStr) continue;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              if (parsed.type === "complete") {
-                setModernResult(parsed.result);
-              } else if (parsed.type === "error") {
-                console.error("Stream error:", parsed.message);
-              } else {
-                setModernSteps((prev) => [...prev, parsed as AgentStep]);
-              }
-            } catch (e) {
-              console.warn("Parse warning:", e);
-            }
-          }
-        }
+      if (mode === "classical") {
+        await runClassical(ctrl.signal);
+      } else if (mode === "react") {
+        await runReact(ctrl.signal);
+      } else {
+        await Promise.all([
+          runReact(ctrl.signal),
+          runClassical(ctrl.signal),
+        ]);
       }
-
-      if (activeMode === "classical" || activeMode === "side_by_side") {
-        const res = await fetch(`${apiBase}/api/agent`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ goal, mode: "classical" }),
-        });
-        const data = await res.json();
-        if (data.result) {
-          setClassicalResult(data.result as ClassicalResult);
-        }
-      }
-    } catch (err: unknown) {
-      if ((err as Error)?.name !== "AbortError") {
-        console.error("Agent execution error:", err);
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        setError((e as Error).message);
       }
     } finally {
-      setIsRunning(false);
-      if (timerRef.current) clearInterval(timerRef.current);
+      setRunning(false);
+      abortRef.current = null;
     }
-  }, [goal, activeMode, isRunning]);
+  }
 
-  const handleStop = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    setIsRunning(false);
-    if (timerRef.current) clearInterval(timerRef.current);
-  };
+  function stop() {
+    abortRef.current?.abort();
+    setRunning(false);
+  }
 
-  const handleCopy = () => {
-    const text = modernResult?.finalAnswer || classicalResult?.finalAnswer || "";
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownloadLogs = () => {
-    const logPayload = {
-      project: "Atlas Autonomous Travel Concierge",
-      timestamp: new Date().toISOString(),
-      goal,
-      activeMode,
-      modernRun: modernResult || { steps: modernSteps },
-      classicalRun: classicalResult,
-    };
-    const blob = new Blob([JSON.stringify(logPayload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `atlas-agent-trace-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const showReact = mode === "react" || mode === "both";
+  const showClassical = mode === "classical" || mode === "both";
+  const hasOutput = steps.length > 0 || classical !== null || error !== null;
 
   return (
-    <section id="playground" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Section Header */}
-      <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-4">
-          <Sparkles size={13} />
-          Interactive Live Environment
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          Observable <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Agentic Playground</span>
-        </h2>
-        <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          Inspect every thought, tool dispatch, API payload, and reflection in real time. Compare modern ReAct multi-step reasoning against static rule-based agents.
-        </p>
-      </div>
+    <Section id="playground">
+      <SectionHead
+        index="#01"
+        label="Live playground"
+        title="Give it a goal. Watch it decide."
+        lede="This runs the real agent against the real tools. Every thought, tool call and observation below is produced during the run, not replayed."
+      />
 
-      {/* Main Console Box */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0f15]/90 backdrop-blur-xl shadow-2xl overflow-hidden">
-        {/* Console Top Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 border-b border-white/10 bg-white/[0.02]">
-          {/* Mode Switcher */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/10 text-xs font-medium">
-            <button
-              onClick={() => setActiveMode("modern")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMode === "modern"
-                  ? "bg-sky-500 text-black font-semibold shadow-md"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <Cpu size={13} />
-              Modern Agent (ReAct)
-            </button>
-            <button
-              onClick={() => setActiveMode("classical")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMode === "classical"
-                  ? "bg-amber-500 text-black font-semibold shadow-md"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <Layers size={13} />
-              Classical Agent
-            </button>
-            <button
-              onClick={() => setActiveMode("side_by_side")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                activeMode === "side_by_side"
-                  ? "bg-purple-500 text-white font-semibold shadow-md"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <Clock size={13} />
-              Side-by-Side Dual Run
-            </button>
-          </div>
+      {/* Composer */}
+      <div className="border-t border-line px-6 py-8 sm:px-10">
+        <div className="overflow-hidden rounded-[5px] border border-line bg-surface">
+          <textarea
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            rows={3}
+            spellCheck={false}
+            placeholder="Describe the trip you want planned."
+            className="w-full resize-none bg-transparent px-5 py-5 text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-mute"
+          />
 
-          {/* Execution Controls & Stats */}
-          <div className="flex items-center gap-3">
-            {isRunning && (
-              <div className="flex items-center gap-2 text-xs font-mono text-sky-400">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-                {(elapsed / 10).toFixed(1)}s elapsed
-              </div>
-            )}
-            <button
-              onClick={handleDownloadLogs}
-              disabled={modernSteps.length === 0 && !classicalResult}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium transition-colors"
-              title="Download Trace JSON"
-            >
-              <Download size={13} />
-              Export Logs
-            </button>
-          </div>
-        </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
+            {/* Mode switch */}
+            <div className="flex items-center rounded-[4px] border border-line">
+              {(
+                [
+                  ["react", "ReAct agent"],
+                  ["classical", "Classical"],
+                  ["both", "Both"],
+                ] as [Mode, string][]
+              ).map(([m, label], i) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  aria-pressed={mode === m}
+                  className={cn(
+                    "micro px-3 py-2 transition-colors",
+                    i > 0 && "border-l border-line",
+                    mode === m
+                      ? "bg-cobalt text-[#231007]"
+                      : "text-ink-soft hover:text-ink",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-        {/* Input & Preset Row */}
-        <div className="p-4 sm:p-6 border-b border-white/10 bg-white/[0.01]">
-          {/* Preset Buttons */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-3 scrollbar-none text-xs">
-            <span className="text-zinc-500 font-medium whitespace-nowrap">Presets:</span>
-            {PRESET_GOALS.map((p, idx) => (
+            <div className="flex items-center gap-2">
+              {running ? (
+                <button
+                  type="button"
+                  onClick={stop}
+                  className="flex items-center gap-2 rounded-[4px] border border-line px-3.5 py-2 text-ink-soft transition-colors hover:text-ink"
+                >
+                  <Square size={12} />
+                  <span className="micro">Stop</span>
+                </button>
+              ) : null}
+
               <button
-                key={idx}
-                onClick={() => setGoal(p.prompt)}
-                className="whitespace-nowrap px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white transition-colors"
+                type="button"
+                onClick={run}
+                disabled={running || !goal.trim()}
+                className="flex items-center gap-2 rounded-full bg-cobalt px-4 py-2 text-[#231007] transition-colors hover:bg-cobalt-deep disabled:opacity-45"
               >
-                {p.title}
+                {running ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <ArrowUp size={13} />
+                )}
+                <span className="micro font-bold">
+                  {running ? "Running" : "Run"}
+                </span>
               </button>
-            ))}
-          </div>
-
-          {/* Textarea + Run Button */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <textarea
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              rows={3}
-              placeholder="Enter your travel planning request with constraints (destination, dates, budget, interests)..."
-              className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500/60 resize-none font-sans"
-            />
-            <div className="flex sm:flex-col justify-end gap-2">
-              {!isRunning ? (
-                <button
-                  onClick={handleRun}
-                  disabled={!goal.trim()}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-black font-bold text-sm shadow-lg shadow-sky-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  <Play size={15} fill="currentColor" />
-                  Run Agent
-                </button>
-              ) : (
-                <button
-                  onClick={handleStop}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 font-semibold text-sm transition-all"
-                >
-                  <RotateCcw size={15} />
-                  Stop
-                </button>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Live Execution Panel */}
-        <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[460px]">
-          {/* Modern Agent Trace Feed */}
-          {(activeMode === "modern" || activeMode === "side_by_side") && (
-            <div className={activeMode === "side_by_side" ? "lg:col-span-7 flex flex-col" : "lg:col-span-12 flex flex-col"}>
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                    Modern ReAct Agent Trace
-                  </span>
-                  <span className="text-[11px] text-zinc-500">
-                    ({modernSteps.length} steps recorded)
-                  </span>
-                </div>
-                {modernResult && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-400">
-                    <span>{modernResult.toolsUsed.length} tools utilized</span>
-                    <span>-</span>
-                    <span>{(modernResult.duration / 1000).toFixed(2)}s total</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Steps Scroll Area */}
-              <div className="flex-1 space-y-3 overflow-y-auto max-h-[580px] pr-2">
-                {modernSteps.length === 0 && !isRunning && (
-                  <div className="h-48 flex flex-col items-center justify-center text-center text-zinc-500 text-sm">
-                    <Compass size={32} className="mb-2 text-zinc-600" />
-                    <p>Agent is standing by.</p>
-                    <p className="text-xs text-zinc-600">Select a preset or enter a goal and click &quot;Run Agent&quot;.</p>
-                  </div>
-                )}
-
-                {modernSteps.map((step, idx) => {
-                  const theme = STEP_THEMES[step.type] || STEP_THEMES.thought;
-                  return (
-                    <div
-                      key={idx}
-                      className="rounded-xl border p-3.5 transition-all"
-                      style={{ backgroundColor: theme.bg, borderColor: theme.border }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span
-                          className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase"
-                          style={{ color: theme.text, backgroundColor: `${theme.border}` }}
-                        >
-                          {theme.label} {step.type !== "answer" ? `#${idx + 1}` : ""}
-                        </span>
-                        {step.tool && TOOL_PILLS[step.tool] && (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium"
-                            style={{
-                              color: TOOL_PILLS[step.tool].color,
-                              backgroundColor: `${TOOL_PILLS[step.tool].color}15`,
-                              border: `1px solid ${TOOL_PILLS[step.tool].color}30`,
-                            }}
-                          >
-                            {TOOL_PILLS[step.tool].icon}
-                            {TOOL_PILLS[step.tool].name}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs sm:text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed font-mono">
-                        {step.content}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {isRunning && (
-                  <div className="p-3 rounded-xl border border-sky-500/20 bg-sky-500/5 flex items-center gap-3 text-xs text-sky-400 font-mono">
-                    <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-                    Agent orchestrating reasoning step...
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons if Finished */}
-              {modernResult && (
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-                  <div className="text-xs text-emerald-400 flex items-center gap-1.5 font-medium">
-                    <Check size={14} />
-                    Autonomous planning synthesis complete
-                  </div>
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300 font-medium transition-colors"
-                  >
-                    {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                    {copied ? "Copied" : "Copy Itinerary"}
-                  </button>
-                </div>
+        {/* Presets */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {PRESETS.map((p, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setGoal(p)}
+              disabled={running}
+              className={cn(
+                "micro max-w-full truncate rounded-[3px] border px-2.5 py-1.5 transition-colors disabled:opacity-50",
+                goal === p
+                  ? "border-cobalt/40 bg-cobalt-wash text-cobalt"
+                  : "border-line text-ink-mute hover:border-line-strong hover:text-ink-soft",
               )}
-            </div>
-          )}
-
-          {/* Classical Agent Trace / Side-by-Side Panel */}
-          {(activeMode === "classical" || activeMode === "side_by_side") && (
-            <div className={activeMode === "side_by_side" ? "lg:col-span-5 flex flex-col border-t lg:border-t-0 lg:border-l border-white/10 lg:pl-6 pt-6 lg:pt-0" : "lg:col-span-12 flex flex-col"}>
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                    Classical Rule-Based Agent
-                  </span>
-                </div>
-                {classicalResult && (
-                  <span className="text-xs text-zinc-500 font-mono">
-                    {classicalResult.duration}ms
-                  </span>
-                )}
-              </div>
-
-              <div className="flex-1 space-y-3 overflow-y-auto max-h-[580px] pr-2">
-                {!classicalResult ? (
-                  <div className="h-48 flex flex-col items-center justify-center text-center text-zinc-500 text-sm">
-                    <Layers size={32} className="mb-2 text-zinc-600" />
-                    <p>Static rule evaluation pending.</p>
-                    <p className="text-xs text-zinc-600">Triggers fixed lookup tables without tool reflection.</p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Rules Evaluated */}
-                    <div className="space-y-2">
-                      {classicalResult.steps.map((st, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs font-mono"
-                        >
-                          <div className="flex items-center justify-between text-amber-300 font-bold mb-1">
-                            <span>{st.ruleName}</span>
-                            <span>{st.matched ? "MATCHED" : "NO MATCH"}</span>
-                          </div>
-                          <div className="text-zinc-300">{st.content}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Limitations Callout */}
-                    {classicalResult.limitationsEncountered.length > 0 && (
-                      <div className="p-3 rounded-xl border border-red-500/30 bg-red-500/10 text-xs">
-                        <div className="flex items-center gap-1.5 text-red-400 font-bold mb-2">
-                          <AlertTriangle size={13} />
-                          Classical Limitations Triggered:
-                        </div>
-                        <ul className="list-disc list-inside space-y-1 text-zinc-300">
-                          {classicalResult.limitationsEncountered.map((lim, i) => (
-                            <li key={i}>{lim}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Output */}
-                    <div className="p-3 rounded-xl border border-white/10 bg-black/40 text-xs text-zinc-300 font-mono whitespace-pre-wrap">
-                      {classicalResult.finalAnswer}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+            >
+              {p.length > 54 ? `${p.slice(0, 54)}...` : p}
+            </button>
+          ))}
         </div>
       </div>
-    </section>
+
+      {/* Status strip */}
+      <div className="grid grid-cols-2 border-t border-line sm:grid-cols-4">
+        {[
+          {
+            k: "Status",
+            v: running
+              ? "Running"
+              : error
+                ? "Error"
+                : result || classical
+                  ? "Complete"
+                  : "Idle",
+          },
+          {
+            k: "Steps",
+            v: showReact
+              ? String(steps.length)
+              : String(classical?.steps.length ?? 0),
+          },
+          {
+            k: "Tools called",
+            v: String(
+              result?.toolsUsed.length ??
+                new Set(steps.filter((s) => s.tool).map((s) => s.tool)).size,
+            ),
+          },
+          {
+            k: "Elapsed",
+            v: running
+              ? `${(elapsed / 1000).toFixed(1)}s`
+              : result
+                ? `${(result.duration / 1000).toFixed(1)}s`
+                : classical
+                  ? `${classical.duration}ms`
+                  : "0.0s",
+          },
+        ].map((m, i) => (
+          <div
+            key={m.k}
+            className={cn(
+              "border-line px-5 py-4",
+              i < 3 && "border-r",
+              i < 2 && "border-b sm:border-b-0",
+            )}
+          >
+            <p className="micro mb-2 text-ink-mute">{m.k}</p>
+            <p className="font-mono text-[15px] text-ink">{m.v}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Trace */}
+      <div
+        className={cn(
+          "grid grid-cols-1 border-t border-line",
+          mode === "both" && "lg:grid-cols-2",
+        )}
+      >
+        {showReact && (
+          <div className={cn(mode === "both" && "lg:border-r lg:border-line")}>
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <span className="micro flex items-center gap-2 text-cobalt">
+                <Terminal size={12} />
+                ReAct trace
+              </span>
+              {running && (
+                <span className="micro flex items-center gap-1.5 text-ink-mute">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cobalt" />
+                  streaming
+                </span>
+              )}
+            </div>
+
+            <div
+              ref={logRef}
+              className="max-h-[520px] min-h-[260px] overflow-y-auto"
+            >
+              {steps.length === 0 && !running && !error && (
+                <EmptyState text="The trace appears here, one step at a time, as the agent produces it." />
+              )}
+
+              {steps.map((s, i) => {
+                const meta = STEP_META[s.type] ?? STEP_META.thought;
+                const Icon = meta.Icon;
+                return (
+                  <div
+                    key={i}
+                    className="animate-rise border-b border-line px-5 py-4"
+                  >
+                    <div className="mb-2.5 flex items-center gap-2.5">
+                      <span className="micro text-ink-mute">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <Icon size={12} className={meta.tone} />
+                      <span className={cn("micro", meta.tone)}>
+                        {meta.label}
+                      </span>
+                      {s.tool && (
+                        <span className="micro rounded-[3px] border border-line px-2 py-1 text-ink-mute">
+                          {s.tool}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="whitespace-pre-wrap font-mono text-[12.5px] leading-[1.7] text-ink-soft">
+                      {s.content}
+                    </p>
+
+                    {s.toolInput && (
+                      <p className="mt-2 font-mono text-[11.5px] text-ink-mute">
+                        input: {s.toolInput}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              {running && (
+                <div className="flex items-center gap-2.5 px-5 py-4">
+                  <Loader2 size={12} className="animate-spin text-cobalt" />
+                  <span className="micro text-ink-mute">
+                    deciding the next step
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showClassical && (
+          <div>
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <span className="micro flex items-center gap-2 text-clay">
+                <Terminal size={12} />
+                Classical rule evaluation
+              </span>
+            </div>
+
+            <div className="max-h-[520px] min-h-[260px] overflow-y-auto">
+              {!classical && !running && (
+                <EmptyState text="Rule-by-rule evaluation appears here. Note that the order never changes between runs." />
+              )}
+
+              {classical?.steps.map((s, i) => (
+                <div key={i} className="border-b border-line px-5 py-4">
+                  <div className="mb-2.5 flex items-center gap-2.5">
+                    <span className="micro text-ink-mute">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={cn(
+                        "micro",
+                        s.matched ? "text-moss" : "text-ink-mute",
+                      )}
+                    >
+                      {s.matched ? "matched" : "no match"}
+                    </span>
+                    <span className="micro text-clay">{s.ruleName}</span>
+                  </div>
+                  <p className="whitespace-pre-wrap font-mono text-[12.5px] leading-[1.7] text-ink-soft">
+                    {s.content}
+                  </p>
+                </div>
+              ))}
+
+              {classical && classical.limitationsEncountered.length > 0 && (
+                <div className="border-b border-line bg-band px-5 py-4">
+                  <p className="micro mb-3 text-clay">Limitations hit</p>
+                  <ul className="space-y-2">
+                    {classical.limitationsEncountered.map((l) => (
+                      <li
+                        key={l}
+                        className="text-[12.5px] leading-relaxed text-ink-soft"
+                      >
+                        {l}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="border-t border-line bg-band px-6 py-5 sm:px-10">
+          <p className="micro mb-2 text-rose">Run failed</p>
+          <p className="font-mono text-[12.5px] text-ink-soft">{error}</p>
+        </div>
+      )}
+
+      {/* Final answers */}
+      {(result || classical) && (
+        <div className="border-t border-line">
+          {result && (
+            <div className="border-b border-line px-6 py-8 sm:px-10">
+              <div className="mb-5 flex flex-wrap items-center gap-3">
+                <span className="micro text-cobalt">Itinerary</span>
+                <span className="micro text-ink-mute">
+                  {result.totalSteps} steps, {result.toolsUsed.length} tools,{" "}
+                  {(result.duration / 1000).toFixed(1)}s
+                </span>
+              </div>
+              <pre className="overflow-x-auto whitespace-pre-wrap font-sans text-[14px] leading-[1.75] text-ink-soft">
+                {result.finalAnswer}
+              </pre>
+            </div>
+          )}
+
+          {classical && (
+            <div className="px-6 py-8 sm:px-10">
+              <div className="mb-5 flex flex-wrap items-center gap-3">
+                <span className="micro text-clay">Classical output</span>
+                <span className="micro text-ink-mute">
+                  {classical.matchedRules} of {classical.totalRulesEvaluated}{" "}
+                  rules matched, {classical.duration}ms
+                </span>
+              </div>
+              <pre className="overflow-x-auto whitespace-pre-wrap font-sans text-[14px] leading-[1.75] text-ink-soft">
+                {classical.finalAnswer}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hasOutput && <div className="border-t border-line" />}
+    </Section>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="flex min-h-[260px] items-center justify-center px-8 py-12">
+      <p className="max-w-xs text-center text-[13px] leading-relaxed text-ink-mute">
+        {text}
+      </p>
+    </div>
   );
 }

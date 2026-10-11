@@ -1,116 +1,153 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Quote, Star, Sparkles, MapPin, Calendar, Wallet } from "lucide-react";
+import { useState } from "react";
+import Image from "next/image";
+import { Section, SectionHead } from "./Section";
+import { cn } from "@/lib/utils";
 
-const PERSONAS = [
+const RUNS = [
   {
-    name: "Aarav Sharma",
-    persona: "Solo Cultural Backpacker",
-    trip: "Kyoto & Osaka 5-Day Heritage Trail",
-    budget: "$620 USD total",
-    quote: "Atlas saved me dozens of hours. It didn't just give me tourist spots; it checked live weather, routed Fushimi Inari at sunrise to avoid tourist crowds, and calculated hostel rates with bicycle rentals.",
-    location: "Tokyo & Kyoto, Japan",
-    rating: 5,
-    tag: "STUDENT SOLO TRIP",
+    id: "kyoto",
+    photo: "/img/street.jpg",
+    alt: "A narrow colourful old-town street busy with people",
+    persona: "Shoulder season, hard ceiling",
+    goal: "5 days in Kyoto in early April for two people, 90000 INR all in.",
+    steps: 14,
+    tools: ["weather", "routes", "stays", "sights", "budget"],
+    finding:
+      "The forecast returned nine wet days in the window, so the agent moved both temple walks to the two clear days and pushed the covered market and the Nishiki arcade into the rain. It closed at 86600 INR, 3400 under the ceiling.",
+    note: "The reordering was not requested. It followed from the observation.",
   },
   {
-    name: "Claire Moreau",
-    persona: "Weekend Cultural Explorer",
-    trip: "Paris 3-Day Art & Dining Weekend",
-    budget: "$1,140 USD total",
-    quote: "When rain was predicted for Saturday afternoon, the agent autonomously rearranged our schedule to visit the Musee d'Orsay during the downpour and saved the Seine walk for clear skies.",
-    location: "Paris, France",
-    rating: 5,
-    tag: "WEATHER ADAPTIVE",
+    id: "reykjavik",
+    photo: "/img/night-peaks.jpg",
+    alt: "Snow covered peaks under a deep night sky",
+    persona: "Unseen destination",
+    goal: "A week in Reykjavik in November, no budget stated.",
+    steps: 11,
+    tools: ["weather", "advisory", "sights", "stays"],
+    finding:
+      "Reykjavik is absent from the curated route table. Rather than falling through to a default, the agent geocoded it, pulled live climate, and flagged four hours of daylight as the binding constraint on the itinerary.",
+    note: "This is the case the classical agent cannot answer at all.",
   },
   {
-    name: "Rohan & 2 Friends",
-    persona: "Group Holiday Planners",
-    trip: "Goa 4-Day Coastal & Nightlife Trip",
-    budget: "Rs. 45,600 INR split 3 ways",
-    quote: "The mathjs calculator handled flight splits and scooter rentals seamlessly, giving us exact INR conversions for every day. The classical agent failed on this prompt, but Atlas handled all constraints effortlessly.",
-    location: "Goa, India",
-    rating: 5,
-    tag: "GROUP BUDGET SPLIT",
+    id: "goa",
+    photo: "/img/palms-beach.jpg",
+    alt: "Coconut palms leaning over an empty tropical beach",
+    persona: "Budget pressure",
+    goal: "Four days in Goa for three friends on 18000 INR total.",
+    steps: 9,
+    tools: ["routes", "stays", "budget", "weather"],
+    finding:
+      "The first budget pass came to 23400 INR and overshot. The agent did not quietly round it down: it re-ran lodging at the backpacker tier, dropped one paid activity, and reported the revised 17200 INR with the swap stated.",
+    note: "The failed arithmetic is visible in the trace rather than hidden.",
   },
 ];
 
 export default function TestimonialsSection() {
-  const [activeIdx, setActiveIdx] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % PERSONAS.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
+  const [i, setI] = useState(0);
+  const run = RUNS[i];
 
   return (
-    <section className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-4">
-          <Sparkles size={13} />
-          Validated Travel Personas
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          Proven Across <span className="bg-gradient-to-r from-purple-400 via-pink-300 to-sky-400 bg-clip-text text-transparent">Real Scenarios</span>
-        </h2>
-        <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          How autonomous tool grounding and ReAct planning perform under actual traveler constraints.
-        </p>
-      </div>
+    <Section id="runs">
+      <SectionHead
+        index="#07"
+        label="Recorded runs"
+        title={
+          <>
+            Three runs, and what
+            <br className="hidden sm:block" /> each one exposed.
+          </>
+        }
+        lede="Captured from the playground against the live tools. Step counts are the real number of loop iterations each goal required."
+      />
 
-      {/* 3 Persona Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {PERSONAS.map((p, idx) => {
-          const isHighlighted = activeIdx === idx;
-          return (
-            <div
-              key={idx}
-              onClick={() => setActiveIdx(idx)}
-              className={`rounded-3xl border p-7 cursor-pointer transition-all duration-300 flex flex-col justify-between ${
-                isHighlighted
-                  ? "border-sky-500/50 bg-[#0e121b] shadow-2xl shadow-sky-500/10 scale-[1.02]"
-                  : "border-white/10 bg-[#0d0f15] hover:border-white/20 hover:bg-[#101420]"
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                    {p.tag}
+      <div className="grid grid-cols-1 border-t border-line lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        {/* Selector */}
+        <div className="lg:border-r lg:border-line">
+          {RUNS.map((r, idx) => {
+            const on = idx === i;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setI(idx)}
+                aria-pressed={on}
+                className={cn(
+                  "relative block w-full border-b border-line px-6 py-7 text-left transition-colors sm:px-10",
+                  on ? "bg-cobalt-wash" : "hover:bg-surface",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute inset-y-0 left-0 w-[2px] transition-colors",
+                    on ? "bg-cobalt" : "bg-transparent",
+                  )}
+                />
+                <div className="flex items-center justify-between gap-4">
+                  <span
+                    className={cn(
+                      "micro",
+                      on ? "text-cobalt" : "text-ink-mute",
+                    )}
+                  >
+                    {String(idx + 1).padStart(2, "0")} / {r.persona}
                   </span>
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(p.rating)].map((_, i) => (
-                      <Star key={i} size={13} fill="currentColor" />
-                    ))}
-                  </div>
+                  <span className="micro shrink-0 text-ink-mute">
+                    {r.steps} steps
+                  </span>
                 </div>
-
-                <Quote size={24} className="text-zinc-600 mb-3" />
-                <p className="text-sm text-zinc-200 leading-relaxed mb-6 italic">
-                  &quot;{p.quote}&quot;
+                <p className="mt-3 text-[14.5px] leading-relaxed text-ink">
+                  {r.goal}
                 </p>
-              </div>
+              </button>
+            );
+          })}
+        </div>
 
-              <div className="pt-4 border-t border-white/5">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-white">{p.name}</h4>
-                  <span className="text-xs font-mono text-emerald-400">{p.budget}</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                  <span>{p.persona}</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin size={11} className="text-sky-400" />
-                    {p.location}
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* Detail */}
+        <div className="px-6 py-10 sm:px-10 lg:py-14">
+          <div className="relative mb-8 h-52 overflow-hidden rounded-[4px] border border-line">
+            <Image
+              key={run.photo}
+              src={run.photo}
+              alt={run.alt}
+              fill
+              sizes="(max-width: 1024px) 100vw, 560px"
+              className="animate-rise object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(7,20,26,0.8) 0%, transparent 55%)",
+              }}
+            />
+          </div>
+
+          <p className="micro mb-5 text-ink-mute">What happened</p>
+
+          <p className="font-serif text-[1.35rem] font-light leading-[1.45] tracking-[-0.01em] text-ink">
+            {run.finding}
+          </p>
+
+          <p className="mt-6 border-l-2 border-cobalt pl-4 text-[13px] italic leading-relaxed text-ink-soft">
+            {run.note}
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-1.5">
+            {run.tools.map((t) => (
+              <span
+                key={t}
+                className="micro rounded-[3px] border border-line bg-surface px-2.5 py-1.5 text-ink-soft"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-    </section>
+    </Section>
   );
 }

@@ -1,39 +1,49 @@
-"use client";
-
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Section } from "./Section";
 
 export default function StatementSection() {
   return (
-    <section className="relative w-full py-28 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-8">
-        <Sparkles size={13} />
-        The Paradigm Shift
-      </div>
+    <Section className="border-t-0">
+      <div className="px-6 py-24 sm:px-10 sm:py-32">
+        <p className="micro mb-10 text-cobalt">The shift</p>
 
-      <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight sm:leading-snug tracking-tight mb-8">
-        Planning trips across 20 browser tabs is broken.{" "}
-        <span className="text-zinc-500 font-medium">
-          Atlas replaces fragmented tab switching with an autonomous reasoning engine that
-        </span>{" "}
-        <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
-          verifies real-world weather, audits flight corridors, matches curated lodging, and balances itemized budgets in seconds.
-        </span>
-      </h2>
+        <h2 className="max-w-5xl text-[clamp(1.6rem,3.5vw,2.9rem)] font-light leading-[1.22] tracking-[-0.02em]">
+          <span className="text-ink">
+            A chatbot answers the question you asked.
+          </span>{" "}
+          <span className="text-ink-mute">
+            It guesses at the weather, invents a hotel rate, and never checks
+            whether the budget actually closes.
+          </span>{" "}
+          <span className="text-ink">
+            An agent does the work instead: it picks a tool, reads what comes
+            back, and lets the result change the plan.
+          </span>
+        </h2>
 
-      <div className="flex flex-wrap items-center justify-center gap-8 text-xs font-mono text-zinc-400 pt-4">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          Zero Hallucinated Rates
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-sky-400" />
-          Real-Time Open-Meteo Grounding
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-purple-400" />
-          Full SSE Observable Traceability
+        <div className="mt-14 grid max-w-4xl grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
+          {[
+            {
+              k: "Grounded",
+              v: "Every figure in the itinerary traces back to a tool call, not to the model's memory.",
+            },
+            {
+              k: "Observable",
+              v: "Thought, action, observation. Each step streams to the screen as it happens.",
+            },
+            {
+              k: "Adaptive",
+              v: "A rain forecast reorders the days. The plan responds to what the tools return.",
+            },
+          ].map((c) => (
+            <div key={c.k} className="bg-canvas p-6">
+              <p className="micro mb-3 text-cobalt">{c.k}</p>
+              <p className="text-[13.5px] leading-relaxed text-ink-soft">
+                {c.v}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

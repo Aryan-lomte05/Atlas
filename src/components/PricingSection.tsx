@@ -1,131 +1,155 @@
-"use client";
-
-import { Check, Sparkles, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import Image from "next/image";
+import { Check } from "lucide-react";
+import { Section, SectionHead } from "./Section";
+import { cn } from "@/lib/utils";
 
 const TIERS = [
   {
-    name: "Backpacker Nomad",
-    dailyRate: "$25 - $55",
-    subtitle: "Budget-conscious solo travelers and students",
-    popular: false,
-    features: [
-      "Capsule hotels, pod hostels & boutique dorms",
-      "Public transit pass optimization (Suica, Navigo, Metro)",
-      "Curated street food markets & authentic local stalls",
-      "Free museum hours & self-guided UNESCO trails",
-      "Live weather alerts for outdoor walking routes",
+    key: "backpacker",
+    photo: "/img/hills.jpg",
+    alt: "Green coastal headland at sunset",
+    name: "Backpacker",
+    nightly: "2400",
+    perDiem: "1200",
+    blurb:
+      "Hostels and guesthouses, public transit, street food. The tier the agent falls back to when a budget pass overshoots.",
+    traits: [
+      "Dormitory and guesthouse stock",
+      "Transit passes over taxis",
+      "Free and civic sights prioritised",
+      "Two paid activities per week",
     ],
-    cta: "Plan Budget Trip",
   },
   {
-    name: "Smart Boutique",
-    dailyRate: "$90 - $180",
-    subtitle: "Optimal balance of comfort, location and culture",
-    popular: true,
-    features: [
-      "3-4 star boutique hotels in prime walkable districts",
-      "Express transit & intercity high-speed rail routing",
-      "Top-rated neighborhood bistros & cultural dining",
-      "Pre-booked landmark fast-track ticketing passes",
-      "Full itemized mathematical budget audit via mathjs",
-      "Emergency numbers, local etiquette & visa guidelines",
+    key: "midrange",
+    photo: "/img/cove.jpg",
+    alt: "Turquoise water in a sheltered rocky cove",
+    name: "Mid-range",
+    nightly: "6200",
+    perDiem: "2800",
+    blurb:
+      "The default assumption when a traveller states a budget without naming a style. Most recorded runs settle here.",
+    traits: [
+      "Three-star and boutique inns",
+      "Mix of transit and point-to-point",
+      "Paid headline sights included",
+      "One reserved dinner per city",
     ],
-    cta: "Plan Boutique Trip",
+    featured: true,
   },
   {
-    name: "Luxury Concierge",
-    dailyRate: "$350 - $900+",
-    subtitle: "Uncompromising premium hospitality and private tours",
-    popular: false,
-    features: [
-      "5-star palace hotels, ryokans & cliffside villas",
-      "Private airport transfers & premium cabin flight routing",
-      "Michelin dining reservations & private tasting tours",
-      "VIP private guides & exclusive after-hours access",
-      "24/7 travel advisory & medical concierge protocols",
+    key: "boutique",
+    photo: "/img/santorini.jpg",
+    alt: "Whitewashed terraces above a blue caldera",
+    name: "Boutique",
+    nightly: "14500",
+    perDiem: "6500",
+    blurb:
+      "Ryokan, design hotels and guided access. Selected only when the stated ceiling genuinely supports it.",
+    traits: [
+      "Ryokan and design properties",
+      "Private transfers",
+      "Guided and timed-entry access",
+      "Reserved dining throughout",
     ],
-    cta: "Plan Luxury Trip",
   },
 ];
 
 export default function PricingSection() {
   return (
-    <section className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-4">
-          <Zap size={13} />
-          Budget Calibration
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          Engineered for <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent">Every Travel Tier</span>
-        </h2>
-        <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          Atlas automatically configures lodging, flights, and activities to fit within your specified financial envelope.
-        </p>
-      </div>
+    <Section id="budget" band>
+      <SectionHead
+        index="#08"
+        label="Budget calibration"
+        title={
+          <>
+            The three tiers the
+            <br className="hidden sm:block" /> budget tool reasons with.
+          </>
+        }
+        lede="These are not products. They are the lodging and per diem bands that calculateBudgetAndCurrency works from, shown so the arithmetic in a plan can be checked against its assumptions."
+      />
 
-      {/* 3 Tier Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-        {TIERS.map((tier, idx) => (
+      <div className="grid grid-cols-1 border-t border-line md:grid-cols-3">
+        {TIERS.map((t, i) => (
           <div
-            key={idx}
-            className={`rounded-3xl border p-8 flex flex-col justify-between relative transition-all duration-300 ${
-              tier.popular
-                ? "border-sky-500/60 bg-[#0e131f] shadow-2xl shadow-sky-500/10 scale-105 z-10"
-                : "border-white/10 bg-[#0d0f15] hover:border-white/20"
-            }`}
+            key={t.key}
+            className={cn(
+              "relative border-b border-line px-6 py-9 sm:px-8",
+              i < TIERS.length - 1 && "md:border-r",
+              t.featured && "bg-cobalt-wash",
+            )}
           >
-            {tier.popular && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-sky-400 to-blue-500 text-black text-xs font-black uppercase tracking-wider shadow-md">
-                Most Popular
-              </div>
+            {t.featured && (
+              <span className="absolute inset-x-0 top-0 h-[2px] bg-cobalt" />
             )}
 
-            <div>
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-white mb-1">{tier.name}</h3>
-                <p className="text-xs text-zinc-400">{tier.subtitle}</p>
-              </div>
-
-              <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-white/10">
-                <span className="text-3xl sm:text-4xl font-extrabold text-white">
-                  {tier.dailyRate}
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">/ traveler / day</span>
-              </div>
-
-              <div className="space-y-3 mb-8">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 font-mono">
-                  Included Optimizations:
-                </span>
-                <ul className="space-y-2.5 text-xs text-zinc-300">
-                  {tier.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <div className="p-0.5 rounded bg-sky-500/10 text-sky-400 mt-0.5">
-                        <Check size={12} />
-                      </div>
-                      <span className="leading-relaxed">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="relative mb-7 h-32 overflow-hidden rounded-[4px] border border-line">
+              <Image
+                src={t.photo}
+                alt={t.alt}
+                fill
+                sizes="(max-width: 768px) 100vw, 380px"
+                className="object-cover"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to top, rgba(7,20,26,0.85) 0%, transparent 60%)",
+                }}
+              />
             </div>
 
-            <a
-              href="#playground"
-              className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all ${
-                tier.popular
-                  ? "bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-black shadow-lg shadow-sky-500/20"
-                  : "bg-white/5 hover:bg-white/10 border border-white/10 text-white"
-              }`}
-            >
-              {tier.cta}
-              <ArrowRight size={14} />
-            </a>
+            <div className="flex items-center justify-between">
+              <p
+                className={cn(
+                  "micro",
+                  t.featured ? "text-cobalt" : "text-ink",
+                )}
+              >
+                {t.name}
+              </p>
+              {t.featured && (
+                <span className="micro text-cobalt">Default</span>
+              )}
+            </div>
+
+            <div className="mt-6 flex items-baseline gap-1.5">
+              <span className="font-serif text-[2.6rem] font-light leading-none tracking-[-0.02em] text-ink">
+                {t.nightly}
+              </span>
+              <span className="micro text-ink-mute">INR / night</span>
+            </div>
+
+            <p className="micro mt-3 text-ink-mute">
+              plus {t.perDiem} per diem
+            </p>
+
+            <p className="mt-6 text-[13px] leading-relaxed text-ink-soft">
+              {t.blurb}
+            </p>
+
+            <ul className="mt-7 space-y-3 border-t border-line pt-6">
+              {t.traits.map((tr) => (
+                <li key={tr} className="flex gap-2.5">
+                  <Check
+                    size={13}
+                    className={cn(
+                      "mt-0.5 shrink-0",
+                      t.featured ? "text-cobalt" : "text-ink-mute",
+                    )}
+                  />
+                  <span className="text-[13px] leading-relaxed text-ink-soft">
+                    {tr}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

@@ -1,60 +1,248 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ATLAS DESIGN SYSTEM
+   Editorial agent interface, dark first.
+   Hairline grids, mono micro-labels, serif display with italic
+   accents, cobalt accent. Palette sampled from the reference
+   templates in dark mode: canvas #111111, cobalt #3b82f6.
+   ============================================================ */
+
+@theme {
+  /* Surfaces: deep ocean dusk rather than neutral grey */
+  --color-canvas: #07141a;
+  --color-band: #0a1b21;
+  --color-surface: #0e2029;
+  --color-raised: #133040;
+  --color-line: #1b3745;
+  --color-line-strong: #2a5061;
+
+  /* Ink, very slightly warm so it sits on teal without going clinical */
+  --color-ink: #f4f8f7;
+  --color-ink-soft: #9fb8bd;
+  --color-ink-mute: #6b8a92;
+
+  /* Accent: sunset coral */
+  --color-cobalt: #ff8257;
+  --color-cobalt-deep: #f2653a;
+  --color-cobalt-soft: #ffb08a;
+  --color-cobalt-wash: #15262b;
+  --color-cobalt-edge: #2e4a4f;
+
+  /* Tropical support palette */
+  --color-lagoon: #2fd4c0;
+  --color-palm: #68c98b;
+  --color-hibiscus: #ff6f9c;
+  --color-gold: #f7c45c;
+  --color-moss: #68c98b;
+  --color-clay: #f7c45c;
+  --color-plum: #ff6f9c;
+  --color-rose: #ff6f9c;
+
+  /* Type */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-display), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-code), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Rhythm */
+  --radius-card: 4px;
+}
+
+/* ---------- Light theme (opt in) ---------- */
+:root[data-theme="light"] {
+  --color-canvas: #fbf7f2;
+  --color-band: #f4ece3;
+  --color-surface: #ffffff;
+  --color-raised: #fffaf5;
+  --color-line: #e7dbcd;
+  --color-line-strong: #d4c2ae;
+
+  --color-ink: #16282c;
+  --color-ink-soft: #55706f;
+  --color-ink-mute: #8a9f9d;
+
+  --color-cobalt: #e2572c;
+  --color-cobalt-deep: #c7441f;
+  --color-cobalt-soft: #b8451f;
+  --color-cobalt-wash: #fdeee6;
+  --color-cobalt-edge: #f6cdb8;
+
+  --color-lagoon: #0f9e90;
+  --color-palm: #3d8f5c;
+  --color-hibiscus: #d64f7d;
+  --color-gold: #c89326;
+  --color-moss: #3d8f5c;
+  --color-clay: #b07a1c;
+  --color-plum: #d64f7d;
+  --color-rose: #d64f7d;
+}
+
 @layer base {
-  :root {
-    --background: #07090e;
-    --foreground: #f5f5f5;
-  }
-
-  * {
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
   html {
-    scroll-behavior: smooth;
+    background-color: var(--color-canvas);
     color-scheme: dark;
-    background-color: #07090e;
+    /* No scroll-behavior here: Lenis owns scrolling and the two fight. */
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
   }
 
   body {
-    background-color: #07090e;
-    color: #f5f5f5;
-    overflow-x: hidden;
-    min-height: 100vh;
-    width: 100%;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     margin: 0;
-    padding: 0;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-cobalt);
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }
 
-/* Marquee Animation */
-@keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+/* ---------- Lenis ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
+/* ---------- Editorial primitives ---------- */
+
+/* Content column bounded by hairlines, as in both references */
+.frame {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  border-inline: 1px solid var(--color-line);
+}
+
+/* Mono micro-label: 11px uppercase, tracked out */
+.micro {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
+/* Hairline cell row */
+.cells {
+  display: grid;
+  border-top: 1px solid var(--color-line);
+}
+.cells > * {
+  border-left: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+  padding: 1.75rem 1.5rem;
+}
+.cells > *:first-child {
+  border-left: 0;
+}
+
+/* Dotted showcase backdrop */
+.dotfield {
+  background-image: radial-gradient(var(--color-cobalt-edge) 1px, transparent 1px);
+  background-size: 9px 9px;
+}
+
+/* Halftone dither veil, for imagery and canvases */
+.dither {
+  position: relative;
+}
+.dither::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.55) 1px, transparent 1.2px);
+  background-size: 3px 3px;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* ---------- Motion ---------- */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: marquee 35s linear infinite;
+  animation: marquee 52s linear infinite;
 }
-
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-/* Modern Minimal Scrollbar */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise {
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0.15; }
+}
+.animate-blink {
+  animation: blink 1.1s steps(1, end) infinite;
+}
+
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+.animate-sweep {
+  animation: sweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #07090e;
+  background: var(--color-band);
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 9999px;
+  background: var(--color-line-strong);
+  border: 3px solid var(--color-band);
+  border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--color-ink-mute);
 }

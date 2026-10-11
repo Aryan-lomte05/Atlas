@@ -1,137 +1,136 @@
 "use client";
 
-import { useState } from "react";
-import { ListFilter, BrainCircuit, Terminal, RefreshCw, FileCheck2, ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Section } from "./Section";
+import { cn } from "@/lib/utils";
 
-const STEPS = [
+const PHASES = [
   {
-    step: "01",
-    tag: "INGESTION",
-    title: "Declare Travel Goal & Constraints",
-    desc: "The traveler provides destinations, party size, budget limit, and travel dates. Atlas parses explicit and implicit constraints into its context memory window.",
-    icon: <ListFilter size={20} />,
-    color: "sky",
-    codeSnippet: 'Goal: "5-day trip to Tokyo in spring under $1600 with Shinjuku lodging and live weather check."',
+    n: "01",
+    title: "Read the goal",
+    body: "The run begins with one sentence of intent. Atlas pulls out the place, the dates, the party size and the ceiling, and states what is still missing rather than assuming it.",
+    sample: 'goal: "5 days in Kyoto, early April, 2 people, 90000 INR"',
   },
   {
-    step: "02",
-    tag: "COGNITION",
-    title: "Autonomous ReAct Reasoning",
-    desc: "Rather than guessing answers, the model reasons: 'What information do I lack?'. It formulates hypotheses and sequences required external tools.",
-    icon: <BrainCircuit size={20} />,
-    color: "purple",
-    codeSnippet: 'Thought: "Before scheduling outdoor shrines, I must query real-time rainfall data in Tokyo."',
+    n: "02",
+    title: "Think",
+    body: "Before any call, the agent writes down what it is trying to establish and why this tool is the one that settles it. That sentence is the thought, and it is kept in the trace.",
+    sample: "thought: the day order depends on rainfall, so climate comes first",
   },
   {
-    step: "03",
-    tag: "EXECUTION",
-    title: "Tool Dispatch to Real-World APIs",
-    desc: "Atlas invokes specialized REST endpoints: Open-Meteo for live meteorology, flight corridor databases, lodging registries, and mathjs calculators.",
-    icon: <Terminal size={20} />,
-    color: "amber",
-    codeSnippet: 'Action: weather_forecast("Tokyo, Japan")\nAction: flight_finder("Tokyo round-trip economy")',
+    n: "03",
+    title: "Act",
+    body: "The model emits a tool name and a JSON argument object. The runtime validates the arguments, dispatches the call, and enforces a timeout so one slow endpoint cannot stall the run.",
+    sample: 'action: getWeather { "city": "Kyoto", "month": 4 }',
   },
   {
-    step: "04",
-    tag: "REFLECTION",
-    title: "Environmental Observation Feedback",
-    desc: "Live tool returns are ingested back into the agent context. If adverse weather or high costs are detected, Atlas self-corrects the plan dynamically.",
-    icon: <RefreshCw size={20} />,
-    color: "emerald",
-    codeSnippet: 'Observation: "19.4 deg C, Clear sunny skies, Rain prob 10%." -> Proceed with outdoor parks on Day 2.',
+    n: "04",
+    title: "Observe",
+    body: "The tool result is appended verbatim to the scratchpad. Nothing is paraphrased on the way in, so a later step can be audited against exactly what the API returned.",
+    sample: 'observation: { "meanHigh": 19.4, "rainDays": 9 }',
   },
   {
-    step: "05",
-    tag: "SYNTHESIS",
-    title: "Itemized Audit & Final Schedule",
-    desc: "Atlas evaluates the full mathematical budget formula, formats a day-by-day itinerary, and saves the verified trace to MongoDB Atlas.",
-    icon: <FileCheck2 size={20} />,
-    color: "rose",
-    codeSnippet: 'Total Calculated: $1,660 USD (~Rs. 139,440 INR)\nTrace saved to MongoDB: ID #6708b1a4f',
+    n: "05",
+    title: "Decide again, then answer",
+    body: "The loop repeats until the agent judges the goal satisfied or hits the step ceiling. Only then does it write the itinerary, with each number attributed to the call that produced it.",
+    sample: "final: 5-day plan, 86600 INR of 90000, temple days moved to the dry window",
   },
 ];
 
 export default function StickyHowItWorks() {
-  const [activeStep, setActiveStep] = useState(0);
+  const [active, setActive] = useState(0);
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            const i = refs.current.indexOf(e.target as HTMLDivElement);
+            if (i >= 0) setActive(i);
+          }
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    refs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <section className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-4">
-          <Terminal size={13} />
-          Step-by-Step Workflow
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          How Atlas <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Orchestrates Intelligence</span>
-        </h2>
-        <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          The inner mechanics of autonomous multi-step reasoning, tool dispatch, and verification.
-        </p>
-      </div>
+    <Section id="how">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        {/* Sticky side */}
+        <div className="border-b border-line lg:border-b-0 lg:border-r">
+          <div className="px-6 pt-20 pb-10 sm:px-10 sm:pt-28 lg:sticky lg:top-24">
+            <p className="micro text-cobalt">
+              <span className="text-ink-mute">#03</span>
+              <span className="text-ink-mute"> / </span>
+              The loop
+            </p>
+            <h2 className="mt-7 text-[2rem] font-medium leading-[1.1] tracking-[-0.025em] sm:text-[2.6rem]">
+              One pass of the
+              <br />
+              ReAct cycle.
+            </h2>
+            <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-ink-soft">
+              Reason, act, observe. The agent repeats this until the goal is
+              met, and the whole sequence is visible while it runs.
+            </p>
 
-      {/* Grid of Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Navigation Column */}
-        <div className="md:col-span-5 space-y-3">
-          {STEPS.map((s, idx) => {
-            const isSelected = activeStep === idx;
-            return (
-              <div
-                key={idx}
-                onClick={() => setActiveStep(idx)}
-                className={`p-5 rounded-2xl border cursor-pointer transition-all duration-200 ${
-                  isSelected
-                    ? "bg-sky-500/10 border-sky-500/50 shadow-lg shadow-sky-500/10"
-                    : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-mono font-bold ${isSelected ? "text-sky-400" : "text-zinc-500"}`}>
-                    STAGE {s.step}
-                  </span>
-                  <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-white/5 text-zinc-400">
-                    {s.tag}
-                  </span>
-                </div>
-                <h4 className={`text-base font-bold ${isSelected ? "text-white" : "text-zinc-300"}`}>
-                  {s.title}
-                </h4>
+            {/* Progress rail */}
+            <div className="mt-10 hidden gap-1.5 lg:flex">
+              {PHASES.map((p, i) => (
+                <span
+                  key={p.n}
+                  className={cn(
+                    "h-[3px] flex-1 rounded-full transition-colors duration-300",
+                    i <= active ? "bg-cobalt" : "bg-line",
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div>
+          {PHASES.map((p, i) => (
+            <div
+              key={p.n}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
+              className={cn(
+                "border-b border-line px-6 py-12 transition-colors duration-300 sm:px-10 sm:py-14",
+                i === active ? "bg-cobalt-wash" : "bg-transparent",
+              )}
+            >
+              <div className="flex items-baseline gap-4">
+                <span
+                  className={cn(
+                    "micro transition-colors",
+                    i === active ? "text-cobalt" : "text-ink-mute",
+                  )}
+                >
+                  {p.n}
+                </span>
+                <h3 className="text-[1.3rem] font-medium tracking-[-0.015em] text-ink">
+                  {p.title}
+                </h3>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Step Preview Pane */}
-        <div className="md:col-span-7 rounded-3xl border border-white/10 bg-[#0d0f15] p-8 shadow-2xl relative overflow-hidden sticky top-28">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
-              {STEPS[activeStep].icon}
-            </div>
-            <div>
-              <span className="text-xs font-mono font-bold text-sky-400">
-                PHASE {STEPS[activeStep].step}
-              </span>
-              <h3 className="text-xl font-bold text-white">
-                {STEPS[activeStep].title}
-              </h3>
-            </div>
-          </div>
+              <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-soft">
+                {p.body}
+              </p>
 
-          <p className="text-sm text-zinc-300 leading-relaxed mb-6">
-            {STEPS[activeStep].desc}
-          </p>
-
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 font-mono">
-              Live Trace Segment:
-            </span>
-            <div className="p-4 rounded-2xl bg-black/70 border border-white/10 font-mono text-xs text-sky-300 whitespace-pre-wrap leading-relaxed">
-              {STEPS[activeStep].codeSnippet}
+              <pre className="mt-5 overflow-x-auto rounded-[4px] border border-line bg-surface px-4 py-3 font-mono text-[12px] leading-relaxed text-ink-soft">
+                {p.sample}
+              </pre>
             </div>
-          </div>
+          ))}
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

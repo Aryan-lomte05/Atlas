@@ -1,197 +1,292 @@
-"use client";
+import { Section, SectionHead } from "./Section";
 
-import { useState } from "react";
-import {
-  Brain,
-  Cpu,
-  Layers,
-  ArrowRight,
-  Database,
-  RefreshCw,
-  CheckCircle2,
-  GitBranch,
-  Terminal,
-  Eye,
-  FileCheck
-} from "lucide-react";
-
-interface FlowStep {
-  id: string;
-  number: string;
-  title: string;
-  role: string;
-  description: string;
-  technicalDetails: string;
+/** Hairline box used throughout the diagram. */
+function Box({
+  x,
+  y,
+  w,
+  h,
+  label,
+  sub,
+  accent,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  sub?: string;
+  accent?: boolean;
+}) {
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        rx={3}
+        fill={accent ? "var(--color-cobalt-wash)" : "var(--color-surface)"}
+        stroke={accent ? "var(--color-cobalt)" : "var(--color-line-strong)"}
+        strokeWidth={1}
+      />
+      <text
+        x={x + w / 2}
+        y={sub ? y + h / 2 - 4 : y + h / 2 + 4}
+        textAnchor="middle"
+        fontFamily="var(--font-mono)"
+        fontSize="10.5"
+        letterSpacing="0.09em"
+        fill={accent ? "var(--color-cobalt)" : "var(--color-ink)"}
+      >
+        {label.toUpperCase()}
+      </text>
+      {sub ? (
+        <text
+          x={x + w / 2}
+          y={y + h / 2 + 12}
+          textAnchor="middle"
+          fontFamily="var(--font-sans)"
+          fontSize="10"
+          fill="var(--color-ink-mute)"
+        >
+          {sub}
+        </text>
+      ) : null}
+    </g>
+  );
 }
 
-const FLOW_STEPS: FlowStep[] = [
-  {
-    id: "goal",
-    number: "01",
-    title: "Travel Goal Ingestion",
-    role: "User Prompt & Constraints",
-    description: "The user submits high-level travel goals, time horizons, budgets, and personal preferences.",
-    technicalDetails: "Tokenized and validated against agent safety guardrails. Preloaded into the working conversation memory window.",
-  },
-  {
-    id: "thought",
-    number: "02",
-    title: "ReAct Reasoning (Thought)",
-    role: "LLM Cognitive Decomposition",
-    description: "The LLM analyzes missing variables (weather, costs, flights, hotels) and formulates the next rational sub-task.",
-    technicalDetails: "Zero-shot chain-of-thought with explicit goal tracking. Employs Llama 3.3 70B via high-throughput inference.",
-  },
-  {
-    id: "action",
-    number: "03",
-    title: "Tool Dispatch (Action)",
-    role: "Autonomous Tool Selection",
-    description: "The agent decides which specific external tool to invoke and produces strictly formatted input arguments.",
-    technicalDetails: "Deterministic regex parser verifies action against known registry: [weather, flight, hotel, budget, attractions, visa].",
-  },
-  {
-    id: "observation",
-    number: "04",
-    title: "Environmental Grounding",
-    role: "Live API Execution",
-    description: "Real-world tools query external REST endpoints (Open-Meteo, Wikipedia, mathjs) and capture actual data.",
-    technicalDetails: "Handles network latency, JSON payload parsing, and standardizes responses into human-readable observation text.",
-  },
-  {
-    id: "reflection",
-    number: "05",
-    title: "Contextual Reflection",
-    role: "Working Memory Integration",
-    description: "The observation is appended to the dialogue context, allowing the agent to refine or correct its strategy.",
-    technicalDetails: "Contextual memory buffer keeps track of prior tool returns, avoiding redundant queries and detecting conflicts.",
-  },
-  {
-    id: "synthesis",
-    number: "06",
-    title: "Final Itinerary Synthesis",
-    role: "Output Generation",
-    description: "Once all essential dimensions are grounded, the agent compiles an itemized, realistic schedule and budget.",
-    technicalDetails: "Structured markdown synthesis containing day-by-day itineraries, flight schedules, hotel tiers, and emergency protocols.",
-  },
-];
+function Arrow({ d, dashed }: { d: string; dashed?: boolean }) {
+  return (
+    <path
+      d={d}
+      fill="none"
+      stroke="var(--color-line-strong)"
+      strokeWidth={1}
+      strokeDasharray={dashed ? "3 3" : undefined}
+      markerEnd="url(#arrowhead)"
+    />
+  );
+}
 
 export default function ArchitectureSection() {
-  const [activeStep, setActiveStep] = useState<FlowStep>(FLOW_STEPS[1]);
-
   return (
-    <section id="architecture" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-4">
-          <GitBranch size={13} />
-          Part A & B: System Architecture
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          The <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">ReAct Agent Flow</span>
-        </h2>
-        <p className="max-w-2xl text-base sm:text-lg text-zinc-400">
-          Observable multi-step reasoning cycle: User Goal -&gt; Agent Reasoning -&gt; Tool Call -&gt; Observation -&gt; Next Action -&gt; Final Answer.
-        </p>
-      </div>
+    <Section id="architecture">
+      <SectionHead
+        index="#05"
+        label="System architecture"
+        title={
+          <>
+            Where each request goes,
+            <br className="hidden sm:block" /> and what comes back.
+          </>
+        }
+        lede="One HTTP request opens a Server-Sent Events stream. The orchestrator holds the loop, the model chooses, the dispatcher executes, and the finished trace is written to Atlas."
+      />
 
-      {/* Interactive Flow Stepper */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-2 sm:gap-3 mb-10">
-        {FLOW_STEPS.map((step) => {
-          const isActive = activeStep.id === step.id;
-          return (
-            <button
-              key={step.id}
-              onClick={() => setActiveStep(step)}
-              className={`p-3.5 sm:p-4 rounded-xl text-left border transition-all duration-200 ${
-                isActive
-                  ? "bg-sky-500/10 border-sky-500/60 shadow-lg shadow-sky-500/10"
-                  : "bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20"
-              }`}
+      {/* Diagram */}
+      <div className="dotfield border-t border-line px-4 py-10 sm:px-10 sm:py-14">
+        <div className="overflow-x-auto">
+          <svg
+            viewBox="0 0 900 430"
+            className="mx-auto block h-auto w-full min-w-[720px] max-w-[900px]"
+            role="img"
+            aria-label="Atlas request flow: browser to the agent route, into the ReAct orchestrator, which alternates between the Llama 3.3 model and the tool dispatcher, then persists the trace to MongoDB Atlas."
+          >
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="7"
+                markerHeight="7"
+                refX="6"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0,0 L6,3 L0,6 z" fill="var(--color-line-strong)" />
+              </marker>
+            </defs>
+
+            {/* Client tier */}
+            <text
+              x="20"
+              y="26"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs font-mono font-bold ${isActive ? "text-sky-400" : "text-zinc-500"}`}>
-                  {step.number}
-                </span>
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />}
-              </div>
-              <h4 className={`text-xs sm:text-sm font-bold ${isActive ? "text-white" : "text-zinc-300"}`}>
-                {step.title}
-              </h4>
-            </button>
-          );
-        })}
+              CLIENT
+            </text>
+            <Box x={20} y={38} w={160} h={54} label="Playground" sub="React client" />
+
+            {/* Edge */}
+            <text
+              x="20"
+              y="150"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
+            >
+              EDGE
+            </text>
+            <Box
+              x={20}
+              y={162}
+              w={160}
+              h={54}
+              label="/api/agent"
+              sub="SSE stream"
+            />
+
+            {/* Orchestrator */}
+            <text
+              x="260"
+              y="26"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
+            >
+              ORCHESTRATION
+            </text>
+            <Box
+              x={260}
+              y={100}
+              w={190}
+              h={116}
+              label="ReAct loop"
+              sub="think / act / observe"
+              accent
+            />
+
+            {/* Model */}
+            <text
+              x="530"
+              y="26"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
+            >
+              REASONING
+            </text>
+            <Box
+              x={530}
+              y={38}
+              w={180}
+              h={54}
+              label="Llama 3.3 70B"
+              sub="Groq LPU"
+            />
+
+            {/* Tools */}
+            <text
+              x="530"
+              y="150"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
+            >
+              GROUNDING
+            </text>
+            <Box x={530} y={162} w={180} h={40} label="Dispatcher" />
+            {[
+              "weather",
+              "routes",
+              "stays",
+              "budget",
+              "sights",
+              "advisory",
+            ].map((t, i) => (
+              <g key={t}>
+                <rect
+                  x={530 + (i % 2) * 92}
+                  y={214 + Math.floor(i / 2) * 36}
+                  width={84}
+                  height={28}
+                  rx={2}
+                  fill="var(--color-surface)"
+                  stroke="var(--color-line)"
+                />
+                <text
+                  x={530 + (i % 2) * 92 + 42}
+                  y={214 + Math.floor(i / 2) * 36 + 18}
+                  textAnchor="middle"
+                  fontFamily="var(--font-mono)"
+                  fontSize="9.5"
+                  fill="var(--color-ink-soft)"
+                >
+                  {t}
+                </text>
+              </g>
+            ))}
+
+            {/* Persistence */}
+            <text
+              x="260"
+              y="300"
+              fontFamily="var(--font-mono)"
+              fontSize="9.5"
+              letterSpacing="0.1em"
+              fill="var(--color-ink-mute)"
+            >
+              PERSISTENCE
+            </text>
+            <Box
+              x={260}
+              y={312}
+              w={190}
+              h={54}
+              label="MongoDB Atlas"
+              sub="agenttraces"
+            />
+
+            {/* Wires */}
+            <Arrow d="M100,92 L100,162" />
+            <Arrow d="M180,189 L260,170" />
+            <Arrow d="M450,140 L530,80" />
+            <Arrow d="M530,70 L470,70 L470,128 L450,128" dashed />
+            <Arrow d="M450,176 L530,182" />
+            <Arrow d="M530,196 L470,196 L470,186 L450,186" dashed />
+            <Arrow d="M355,216 L355,312" />
+            <Arrow d="M260,196 L210,196 L210,120 L180,120" dashed />
+
+            {/* Wire captions */}
+            <text x="106" y="128" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">POST goal</text>
+            <text x="455" y="104" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">prompt</text>
+            <text x="476" y="152" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">action</text>
+            <text x="455" y="212" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">call</text>
+            <text x="362" y="270" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">write trace</text>
+            <text x="150" y="112" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-ink-mute)">step events</text>
+          </svg>
+        </div>
       </div>
 
-      {/* Active Step Deep Dive Card */}
-      <div className="rounded-2xl border border-white/10 bg-[#0d0f15] p-6 sm:p-8 shadow-2xl relative overflow-hidden mb-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-white/10">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-sm font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded border border-sky-500/20">
-                STAGE {activeStep.number}
-              </span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">{activeStep.title}</h3>
-            </div>
-            <p className="text-xs sm:text-sm text-zinc-400">{activeStep.role}</p>
+      {/* Notes */}
+      <div className="cells grid-cols-1 sm:grid-cols-3">
+        {[
+          {
+            k: "Streaming",
+            v: "Steps are flushed to the client as they complete, so the trace fills in live rather than arriving as one block at the end.",
+          },
+          {
+            k: "Degradation",
+            v: "With no Groq key the loop runs a deterministic planner over the same tools. With no Mongo URI it runs without persistence. Neither failure stops a demo.",
+          },
+          {
+            k: "Two deployments",
+            v: "The same orchestrator is importable from the Next.js route and from the standalone Express server, which is what lets the client sit on Vercel and the API on Render.",
+          },
+        ].map((c) => (
+          <div key={c.k}>
+            <p className="micro mb-3 text-cobalt">{c.k}</p>
+            <p className="text-[13px] leading-relaxed text-ink-soft">{c.v}</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 w-fit">
-            <CheckCircle2 size={14} />
-            Autonomous Execution Verified
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-            <h5 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
-              Behavioral Functionality
-            </h5>
-            <p className="text-sm text-zinc-200 leading-relaxed">
-              {activeStep.description}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-black/40 border border-white/10 font-mono">
-            <h5 className="text-xs font-bold uppercase tracking-wider text-sky-400 mb-2">
-              Technical Implementation
-            </h5>
-            <p className="text-xs text-zinc-300 leading-relaxed">
-              {activeStep.technicalDetails}
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
-
-      {/* Architecture Spec Matrix */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
-          <div className="p-2.5 w-fit rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
-            <Brain size={20} />
-          </div>
-          <h4 className="text-base font-bold text-white mb-1">Planning Strategy</h4>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            ReAct (Reasoning + Acting) loop. The agent reasons before each tool invocation and observes feedback before planning the next step.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
-          <div className="p-2.5 w-fit rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
-            <Database size={20} />
-          </div>
-          <h4 className="text-base font-bold text-white mb-1">Memory Model</h4>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Short-term contextual working memory. Preserves prior thoughts, actions, and observations across up to 8 reasoning cycles.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
-          <div className="p-2.5 w-fit rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
-            <Cpu size={20} />
-          </div>
-          <h4 className="text-base font-bold text-white mb-1">LLM Foundation</h4>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Llama 3.3 70B Versatile. Chosen for deterministic instruction following, strict structured outputs, and sub-second inference speeds.
-          </p>
-        </div>
-      </div>
-    </section>
+    </Section>
   );
 }

@@ -1,93 +1,102 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Section, SectionHead } from "./Section";
+import { cn } from "@/lib/utils";
 
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-const FAQS: FaqItem[] = [
+const QA = [
   {
-    question: "What is an Agentic AI system and how does it differ from a standard chatbot?",
-    answer: "A standard chatbot operates in a single prompt-response cycle, generating text based solely on internalized weights (often resulting in outdated or hallucinated facts). An Agentic AI system decomposes a high-level goal into logical steps, autonomously selects external tools (such as live weather APIs or flight databases), inspects intermediate observations, and iteratively reasons toward a verified output.",
+    q: "What makes this an agent rather than a chatbot with plugins?",
+    a: "The model is not told which tools to call or in what order. It receives the goal, the tool descriptions and the growing scratchpad, then chooses the next single action itself. The order of calls differs between runs because it is derived from observations, not from a script. That choice, repeated until the goal is met, is what makes it agentic.",
   },
   {
-    question: "What is the ReAct (Reasoning + Acting) framework?",
-    answer: "ReAct combines reasoning (Thought) and execution (Action) in a synchronized loop. Before invoking any tool, the agent explicitly articulates its hypothesis or requirement. Upon receiving the tool's return (Observation), it reflects on whether the data meets user constraints before deciding the next step or generating the final answer.",
+    q: "Which parts are genuinely live, and which are curated?",
+    a: "Weather and the encyclopedic lookups are live third-party calls. Budget arithmetic is executed locally by mathjs. Routes, lodging tiers and advisories are answered from maintained tables in the repository, because live fare and booking APIs are paid and rate limited. Every tool in the interface is labelled with which of the three it is.",
   },
   {
-    question: "Which LLM powers Atlas and why was it chosen?",
-    answer: "Atlas utilizes Meta Llama 3.3 70B Versatile hosted via Groq LPU inference. This model was selected for its exceptional zero-shot tool selection fidelity, strict JSON/regex adherence, low hallucinations, and rapid sub-second inference speeds (< 400ms), which are essential for multi-step agentic loops.",
+    q: "What memory does the agent have?",
+    a: "Two kinds. Within a run it keeps a scratchpad: the ordered transcript of thoughts, actions and observations, which is re-read before every decision. Across runs it has an episodic store in MongoDB Atlas holding the full step list, tool payloads and timings of each completed run.",
   },
   {
-    question: "What tools are integrated and how are they grounded?",
-    answer: "Atlas integrates 6 specialized tools: Live Weather Forecast (Open-Meteo REST API), Flight Route & Fare Finder, Lodging Explorer, Math & FX Calculator (mathjs library), Attractions Explorer (Wikipedia REST API + curated sights), and Travel Advisory & Visa Guide. All tools return verified real-world data rather than generative assumptions.",
+    q: "What stops it from inventing a hotel rate?",
+    a: "Figures are only permitted to enter the plan through a tool result, and the final answer attributes each number to the call that produced it. Totals are computed by mathjs rather than by the model, which is where invented arithmetic usually appears. If no tool can supply a figure, the agent is instructed to say so instead of producing a plausible one.",
   },
   {
-    question: "How does Atlas satisfy the Part C syllabus comparison requirement?",
-    answer: "Atlas provides both a modern ReAct agent and a classical rule-based agent built from scratch. While the classical agent is confined to static if/else keyword tables with zero contextual memory or live API access, the modern agent exhibits dynamic planning, contextual memory, and autonomous error recovery.",
+    q: "Does it still work without API keys?",
+    a: "Yes, and that is deliberate for a lab demonstration. Without a Groq key the loop runs a deterministic planner over the same six tools, producing a real trace from live data. Without a Mongo URI it runs without persistence. Neither absence breaks the demo.",
   },
   {
-    question: "Can Atlas be demonstrated without a cloud API key?",
-    answer: "Yes. In the absence of a GROQ_API_KEY environment variable, Atlas automatically activates a high-fidelity local ReAct reasoning engine that queries live Open-Meteo, Wikipedia, and mathjs endpoints in real time, ensuring a complete live demonstration during laboratory evaluations.",
+    q: "How is the classical agent a fair comparison?",
+    a: "It is a genuine rule-based agent written for the same task, not a strawman: condition-action rules over a destination table with explicit branches for season, budget band and party size. It is fast, free and perfectly reproducible. The comparison section reports where it beats the ReAct agent as well as where it fails.",
+  },
+  {
+    q: "How many steps does a run take?",
+    a: "Between nine and sixteen loop iterations for the recorded runs, against a hard ceiling that stops runaway loops. Step count scales with how much of the goal is underspecified: a stated budget and fixed dates resolve in fewer iterations than an open brief.",
+  },
+  {
+    q: "Can it be run without a browser?",
+    a: "Yes. demo_agent.py drives the same loop from the terminal and prints each thought, action and observation as it happens, which is the intended path for the lab viva.",
   },
 ];
 
 export default function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const toggle = (idx: number) => {
-    setOpenIndex(openIndex === idx ? null : idx);
-  };
+  const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative w-full py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-sky-500/10 border border-sky-500/20 text-sky-400 mb-4">
-          <HelpCircle size={13} />
-          Frequently Asked Questions
-        </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-          Academic & Technical <span className="bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">FAQ</span>
-        </h2>
-        <p className="max-w-xl text-base text-zinc-400">
-          Everything regarding the IA-2 Activity 1 rubric, ReAct implementation, and classical agent benchmarks.
-        </p>
-      </div>
+    <Section id="faq" band>
+      <SectionHead
+        index="#10"
+        label="Questions"
+        title="The things worth asking."
+      />
 
-      {/* Accordion */}
-      <div className="space-y-3">
-        {FAQS.map((faq, idx) => {
-          const isOpen = openIndex === idx;
+      <div className="border-t border-line">
+        {QA.map((item, i) => {
+          const on = open === i;
           return (
-            <div
-              key={idx}
-              className="rounded-2xl border border-white/10 bg-[#0d0f15] overflow-hidden transition-all duration-200"
-            >
+            <div key={item.q} className="border-b border-line">
               <button
-                onClick={() => toggle(idx)}
-                className="w-full flex items-center justify-between p-5 text-left text-sm sm:text-base font-bold text-white hover:text-sky-300 transition-colors"
+                type="button"
+                onClick={() => setOpen(on ? null : i)}
+                aria-expanded={on}
+                className="flex w-full items-start justify-between gap-6 px-6 py-6 text-left transition-colors hover:bg-surface sm:px-10"
               >
-                <span>{faq.question}</span>
-                <ChevronDown
-                  size={18}
-                  className={`text-zinc-400 transition-transform duration-200 ${
-                    isOpen ? "rotate-180 text-sky-400" : ""
-                  }`}
+                <span
+                  className={cn(
+                    "text-[15px] font-medium leading-snug transition-colors",
+                    on ? "text-cobalt" : "text-ink",
+                  )}
+                >
+                  {item.q}
+                </span>
+                <Plus
+                  size={16}
+                  className={cn(
+                    "mt-0.5 shrink-0 transition-transform duration-300",
+                    on ? "rotate-45 text-cobalt" : "text-ink-mute",
+                  )}
                 />
               </button>
-              {isOpen && (
-                <div className="px-5 pb-5 text-xs sm:text-sm text-zinc-300 leading-relaxed border-t border-white/5 pt-3">
-                  {faq.answer}
+
+              <div
+                className={cn(
+                  "grid transition-all duration-300 ease-out",
+                  on
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0",
+                )}
+              >
+                <div className="overflow-hidden">
+                  <p className="max-w-3xl px-6 pb-7 text-[14px] leading-relaxed text-ink-soft sm:px-10">
+                    {item.a}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
       </div>
-    </section>
+    </Section>
   );
 }
