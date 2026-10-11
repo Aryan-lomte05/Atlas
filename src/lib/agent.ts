@@ -78,20 +78,26 @@ const MODEL_PREFERENCE = [
 const apiKey = process.env.GROQ_API_KEY || "";
 const groq = apiKey ? new Groq({ apiKey }) : null;
 
-let resolvedModel: string | null = null;
+let resolvedModels: string[] | null = null;
 
-async function selectModel(client: Groq): Promise<string> {
-  if (resolvedModel) return resolvedModel;
+/**
+ * Every model in the preference list this key can actually reach, best first.
+ *
+ * Returning the whole list rather than one id lets a run drop to a smaller
+ * model when the larger one is rate limited, which on Groq's free tier is
+ * the difference between a finished demo and a fallback plan.
+ */
+async function selectModels(client: Groq): Promise<string[]> {
+  if (resolvedModels) return resolvedModels;
   try {
     const list = await client.models.list();
     const available = new Set((list.data ?? []).map((m) => m.id));
-    resolvedModel =
-      MODEL_PREFERENCE.find((m) => available.has(m)) ??
-      MODEL_PREFERENCE[1];
+    const usable = MODEL_PREFERENCE.filter((m) => available.has(m));
+    resolvedModels = usable.length > 0 ? usable : [MODEL_PREFERENCE[1]];
   } catch {
-    resolvedModel = MODEL_PREFERENCE[1];
+    resolvedModels = [MODEL_PREFERENCE[1]];
   }
-  return resolvedModel;
+  return resolvedModels;
 }
 
 function systemPrompt(): string {
@@ -331,7 +337,9 @@ export async function runAgent(
     return runDeterministicPlanner(goal, emit, steps, toolsUsed, started);
   }
 
-  const model = await selectModel(groq);
+  const models = await selectModels(groq);
+  let modelIndex = 0;
+  let model = models[0];
   // Earlier turns are given as settled context rather than replayed as live
   // steps, so a follow-up ("make it cheaper") knows what it is amending
   // without the agent re-running every tool from the first request.
@@ -368,6 +376,20 @@ export async function runAgent(
         const retryable =
           /429|rate.?limit|timeout|ETIMEDOUT|ECONNRESET|50\d/i.test(lastError);
         if (!retryable || attempt === MAX_MODEL_RETRIES) break;
+
+        // A token-per-minute cap on the large model clears faster by moving
+        // to a smaller one than by waiting it out, so try that first.
+        const rateLimited = /429|rate.?limit/i.test(lastError);
+        if (rateLimited && modelIndex < models.length - 1) {
+          modelIndex++;
+          const previous = model;
+          model = models[modelIndex];
+          emit({
+            type: "observation",
+            content: `${previous} is rate limited. Switching to ${model} and continuing with the ${toolsUsed.length} tool results already gathered.`,
+          });
+          continue;
+        }
 
         const waitMs = retryAfterMs(lastError, attempt);
         emit({

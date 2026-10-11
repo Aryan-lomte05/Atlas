@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
+  ArrowUpRight,
   Brain,
   ChevronDown,
   CircleDot,
@@ -105,7 +106,6 @@ export default function Playground() {
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
 
   const running = turns.some((t) => t.running);
@@ -125,10 +125,19 @@ export default function Playground() {
     pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
   }, []);
 
+  /**
+   * Keep the newest step in view.
+   *
+   * This sets scrollTop on the conversation pane rather than calling
+   * scrollIntoView, which walks up the ancestor chain and scrolls the whole
+   * document. That is what made the landing page open part-way down at the
+   * console instead of at the top.
+   */
   useEffect(() => {
-    if (pinned.current) {
-      endRef.current?.scrollIntoView({ block: "end" });
-    }
+    if (turns.length === 0) return;
+    if (!pinned.current) return;
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [turns, tick]);
 
   function patch(id: string, update: Partial<Turn>) {
@@ -335,11 +344,15 @@ export default function Playground() {
             </div>
           </div>
 
-          {/* Conversation */}
+          {/* Conversation. Collapsed until there is something to read, so an
+              untouched console is not 600px of empty space. */}
           <div
             ref={scrollRef}
             onScroll={onScroll}
-            className="h-[600px] overflow-y-auto bg-canvas/40 px-4 py-6 sm:px-6"
+            className={cn(
+              "overflow-y-auto bg-canvas/40 px-4 py-6 transition-[height] duration-500 sm:px-6",
+              turns.length === 0 ? "h-[300px]" : "h-[min(68vh,620px)]",
+            )}
           >
             {turns.length === 0 ? (
               <EmptyState />
@@ -350,23 +363,37 @@ export default function Playground() {
                 ))}
               </div>
             )}
-            <div ref={endRef} />
           </div>
 
           {/* Composer, pinned to the bottom */}
           <div className="border-t border-line bg-raised/40 px-4 py-4 sm:px-6">
             <div className="mx-auto max-w-3xl">
-              {/* Suggestions */}
-              <div className="mb-3 flex flex-wrap gap-1.5">
+              {/* Suggestions. Two columns when they are full goals, inline
+                  when they are short follow-ups. */}
+              <div
+                className={cn(
+                  "mb-3 gap-2",
+                  turns.length === 0
+                    ? "grid grid-cols-1 sm:grid-cols-2"
+                    : "flex flex-wrap",
+                )}
+              >
                 {suggestions.map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => send(p)}
                     disabled={running}
-                    className="micro max-w-full truncate rounded-full border border-line px-2.5 py-1.5 text-ink-mute transition-colors hover:border-cobalt/40 hover:text-cobalt disabled:opacity-40"
+                    title={p}
+                    className="group flex items-center gap-2 rounded-[6px] border border-line bg-surface/60 px-3 py-2 text-left transition-colors hover:border-cobalt/40 hover:bg-surface disabled:opacity-40"
                   >
-                    {p.length > 48 ? `${p.slice(0, 48)}...` : p}
+                    <ArrowUpRight
+                      size={11}
+                      className="shrink-0 text-ink-mute transition-colors group-hover:text-cobalt"
+                    />
+                    <span className="micro truncate text-ink-soft transition-colors group-hover:text-ink">
+                      {p}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -467,6 +494,9 @@ function EmptyState() {
       <p className="mt-3 max-w-sm text-[13.5px] leading-relaxed text-ink-soft">
         It will think, call the tools it needs, and show every step on the way
         to the plan. Then you can keep talking to it.
+      </p>
+      <p className="micro mt-6 text-ink-mute">
+        Pick a starting point below, or type your own
       </p>
     </div>
   );
