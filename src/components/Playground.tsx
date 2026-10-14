@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Section, SectionHead } from "./Section";
 import CopyButton from "./CopyButton";
+import Markdown from "./Markdown";
 import { cn } from "@/lib/utils";
 
 /* ---------------- types mirroring src/lib ---------------- */
@@ -349,8 +350,9 @@ export default function Playground() {
           <div
             ref={scrollRef}
             onScroll={onScroll}
+            data-lenis-prevent
             className={cn(
-              "overflow-y-auto bg-canvas/40 px-4 py-6 transition-[height] duration-500 sm:px-6",
+              "overflow-y-auto overscroll-contain bg-canvas/40 px-4 py-6 transition-[height] duration-500 sm:px-6",
               turns.length === 0 ? "h-[300px]" : "h-[min(68vh,620px)]",
             )}
           >
@@ -554,7 +556,10 @@ function TurnView({ turn }: { turn: Turn }) {
             </button>
 
             {open && (
-              <div className="max-h-80 overflow-y-auto border-t border-line">
+              <div
+                data-lenis-prevent
+                className="max-h-80 overflow-y-auto overscroll-contain border-t border-line"
+              >
                 {turn.steps
                   .filter((s) => s.type !== "answer")
                   .map((s, i) => {
@@ -668,10 +673,11 @@ function AnswerCard({
         </div>
         <CopyButton value={body} label="Copy" />
       </div>
-      <div className="max-h-[460px] overflow-y-auto px-4 py-4">
-        <pre className="whitespace-pre-wrap font-sans text-[14px] leading-[1.75] text-ink-soft">
-          {body}
-        </pre>
+      <div
+        data-lenis-prevent
+        className="max-h-[460px] overflow-y-auto overscroll-contain px-4 py-4"
+      >
+        <Markdown>{body}</Markdown>
       </div>
     </div>
   );
